@@ -133,3 +133,43 @@ Proof.
   intros H1; apply H1; intros H2; apply H2;
     intros PH; apply H1; intros H3; assumption.
 Qed.
+
+(** Exercise 3.4 **)
+
+(** POSTPONED **)
+
+(** Exercise 3.5 **)
+
+Section section_for_cut_example.
+  Hypotheses (H : P->Q)
+             (H0 : Q->R)
+             (H1 : (P->R)->T->Q)
+             (H2 : (P->R)->T).
+  Theorem cut_example : Q.
+  Proof.
+    cut (P->R).
+    intro H3.
+    apply H1;
+      [assumption | apply H2; assumption].
+    intro; apply H0; apply H; assumption.
+  Qed.
+  Print cut_example.
+  Theorem cut_example_2 : Q.
+  Proof.
+    apply H1.
+    intro H3; apply H0; apply H.
+    assumption.
+    apply H2.
+    intro H3; apply H0; apply H.
+    assumption.
+  Qed.
+  Print cut_example_2.
+End section_for_cut_example.
+
+(** Exercise 3.6 **)
+
+(** POSTPONED **)
+
+End Minimal_propositional_logic.
+
+Print id_P_tac.
