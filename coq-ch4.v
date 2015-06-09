@@ -64,4 +64,58 @@ Section A_declared.
         H a a.
 End A_declared.
 
+(** Exercise 4.4 **)
 
+Check (forall A:Set, A->A).
+
+Definition id (A:Set)(a:A) := a.
+
+Check id.
+
+Check (forall A B:Set, (A->A->B)->A->B).
+
+Definition diag (A B:Set) (op:A->A->B) :=
+  fun (a:A) => op a a.
+
+Check diag.
+
+Check (forall A B C:Set,
+       (A->B->C)->B->A->C).
+
+Definition permute (A B C:Set) (f:A->B->C)
+                   (b:B) (a:A) :=
+  f a b.
+
+Check permute.
+
+Require Import ZArith.
+
+Check (forall A:Set, (nat->A)->Z->A).
+
+Definition f_nat_Z (A:Set) (nf:nat->A)
+                   (a:Z) :=
+  nf (Zabs_nat a).
+
+Check f_nat_Z.
+
+(** Exercise 4.5 **)
+
+Theorem all_perm_new :
+  forall (A:Type)(P:A->A->Prop),
+  (forall x y:A, P x y)->
+  (forall x y:A, P y x).
+Proof.
+  intros A P H x y.
+  apply H.
+Qed.
+
+Theorem resolution:
+  forall (A:Type)(P Q R S:A->Prop),
+  (forall a:A, Q a -> R a -> S a) ->
+  (forall b:A, P b -> Q b) ->
+  (forall c:A, P c -> R c -> S c).
+Proof.
+  intros A P Q R S H1 H2 c H3 H4.
+  apply H1; [apply H2 | idtac];
+    assumption.
+Qed.
