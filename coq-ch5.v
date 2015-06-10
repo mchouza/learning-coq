@@ -87,7 +87,15 @@ Qed.
 (* Essentially P->P *)
 
 Lemma Ex_5_3_2: forall P:Prop, ~~~P->~P.
-(* TO BE PROVED *)
+Proof.
+  unfold not.
+  intros P H1 p.
+  apply H1.
+  intro H2.
+  apply H2.
+  assumption.
+Qed.
+(* Essentially (((P->Q)->Q)->Q)->P->Q *)
 
 Lemma Ex_5_3_3:
   forall P Q:Prop, ~~~P->P->Q.
