@@ -99,7 +99,12 @@ Qed.
 
 Lemma Ex_5_3_3:
   forall P Q:Prop, ~~~P->P->Q.
-(* TO BE PROVED *)
+Proof.
+  intros P Q H p.
+  assert (~P).
+  apply Ex_5_3_2; assumption.
+  elim H0; assumption.
+Qed.
 
 Lemma Ex_5_3_4:
   forall P Q:Prop, (P->Q)->~Q->~P.
