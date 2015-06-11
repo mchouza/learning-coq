@@ -212,8 +212,26 @@ Qed.
 
 Theorem Ex_5_6_e:
   forall A:Prop, ~~(A\/~A).
-(* PROOF PENDING *)
+Proof.
+  unfold not.
+  intros A H.
+  elim H.
+  right.
+  intro H1.
+  apply H.
+  left.
+  assumption.
+Qed.
 
 Theorem Ex_5_6_f:
   forall A B:Prop, (A\/B)/\~A -> B.
-(* PROOF PENDING *)  
+Proof.
+  intros A B H.
+  elim H.
+  intros H1 H2.
+  elim H1.
+  intro H3.
+  contradiction.
+  intro H3.
+  assumption.
+Qed.
