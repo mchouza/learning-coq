@@ -118,3 +118,97 @@ Proof.
   assumption.
   apply H1; assumption.
 Qed.
+
+(** Exercise 5.4 **)
+
+Definition dyslexic_imp :=
+  forall P Q:Prop, (P->Q)->(Q->P).
+
+Definition dyslexic_contrap :=
+  forall P Q:Prop, (P->Q)->(~P->~Q).
+
+Theorem dyslexic_imp_implies_false:
+  dyslexic_imp -> False.
+Proof.
+  unfold dyslexic_imp.
+  intro H.
+  assert ((False->~False)->~False->False) as H1.
+  apply H.
+  apply H1.
+  intro H2.
+  elim H2.
+  intro H2.
+  assumption.
+Qed.
+
+Theorem dyslexic_contrap_implies_flase:
+  dyslexic_contrap -> False.
+Proof.
+  unfold dyslexic_contrap.
+  intro H.
+  assert
+    ((False->~False)->~False->~~False) as H1.
+  apply H.
+  apply H1.
+  intro H2; elim H2.
+  intro H2; assumption.
+  intro H2; assumption.
+Qed.
+
+(** Exercise 5.5 **)
+
+Theorem Ex_5_5:
+  forall (A:Set)(a b c d:A),
+  a=c \/ b=c \/ c=c \/ d=c.
+Proof.
+  intros A a b c d.
+  right; right; left.
+  reflexivity.
+Qed.
+
+(** Exercise 5.6 **)
+
+Theorem Ex_5_6_a:
+  forall A B C:Prop, A/\(B/\C)->(A/\B)/\C.
+Proof.
+  intros A B C H.
+  repeat split; apply H.
+Qed.
+
+Theorem Ex_5_6_b:
+  forall A B C D:Prop,
+  (A->B)/\(C->D)/\A/\C -> B/\D.
+Proof.
+  intros A B C D H.
+  elim H.
+  split.
+  (* It's not very nice to use auto names *)
+  apply H0.
+  apply H.
+  repeat apply H1.
+Qed.
+
+Theorem Ex_5_6_c: forall A:Prop, ~(A/\~A).
+Proof.
+  intros A H.
+  repeat apply H.
+Qed.
+
+Theorem Ex_5_6_d: 
+  forall A B C:Prop, A\/(B\/C)->(A\/B)\/C.
+Proof.
+  intros A B C H.
+  elim H.
+  intro H1; repeat left; assumption.
+  intro H1; elim H1.
+  intro H2; left; right; assumption.
+  intro H2; repeat right; assumption.
+Qed.
+
+Theorem Ex_5_6_e:
+  forall A:Prop, ~~(A\/~A).
+(* PROOF PENDING *)
+
+Theorem Ex_5_6_f:
+  forall A B:Prop, (A\/B)/\~A -> B.
+(* PROOF PENDING *)  
