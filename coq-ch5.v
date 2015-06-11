@@ -235,3 +235,85 @@ Proof.
   intro H3.
   assumption.
 Qed.
+
+(** Exercise 5.7 **)
+
+Definition peirce := 
+  forall P Q:Prop, ((P->Q)->P)->P.
+
+Definition classic :=
+  forall P:Prop, ~~P->P.
+
+Definition excluded_middle :=
+  forall P:Prop, P\/~P.
+
+Definition de_morgan_not_and_not :=
+  forall P Q:Prop, ~(~P/\~Q)->P\/Q.
+
+Definition implies_to_or :=
+  forall P Q:Prop, (P->Q)->(~P\/Q).
+
+Lemma peirce_implies_classic:
+  peirce -> classic.
+Proof.
+  unfold peirce, classic.
+  intro H.
+  assert (forall P:Prop,
+          ((P->False)->P)->P) as H1.
+  intro P.
+  apply H.
+  intros P H2.
+  apply H1.
+  intro H3.
+  contradiction.
+Qed.
+
+Lemma nn_excluded_middle:
+  forall P:Prop, ~~(P\/~P).
+Proof.
+  intros P H.
+  assert (~P) as H1.
+  intro H2.
+  apply H.
+  left; assumption.
+  assert (~~P).
+  intro H2.
+  apply H.
+  right; assumption.
+  contradiction.
+Qed.
+
+Lemma classic_implies_excluded_middle:
+  classic -> excluded_middle.
+Proof.
+  unfold classic, excluded_middle.
+  intros H P.
+  assert (~~(P\/~P)) as H1.
+  apply nn_excluded_middle.
+  apply H; assumption.
+Qed.
+
+Lemma excluded_middle_implies_dmnan:
+  excluded_middle -> de_morgan_not_and_not.
+Proof.
+  unfold excluded_middle, de_morgan_not_and_not.
+  intros H P Q.
+  assert (P\/~P) as H1.
+  apply H.
+  assert (Q\/~Q) as H2.
+  apply H.
+  elim H1.
+  elim H2.
+  intros; left; assumption.
+  intros; left; assumption.
+  elim H2.
+  intros; right; assumption.
+  intros H3 H4 H5.
+  assert (~P/\~Q).
+  split; assumption.
+  contradiction.
+Qed.
+
+Lemma dmnan_implies_implies_to_or:
+  de_morgan_not_and_not -> implies_to_or.
+(* TO BE PROVED *)
