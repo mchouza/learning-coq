@@ -380,4 +380,62 @@ Proof.
   apply excluded_middle_implies_dmnan.
   apply dmnan_implies_implies_to_or.
   apply implies_to_or_implies_peirce.
-Qed. 
+Qed.
+
+(** Exercise 5.8 **)
+
+(* repeat idtac succeeds doing nothing and
+   repeat fail fails when first tried *)
+
+(** Exercise 5.9 **)
+
+Section ex_5_9.
+
+  Hypothesis A:Set.
+  Hypothesis P Q:A->Prop.
+
+  Lemma ex_5_9_a:
+    (exists x:A, P x \/ Q x) ->
+    (ex P) \/ (ex Q).
+  Proof.
+    intro H1.
+    elim H1.
+    intros H2 H3.
+    elim H3.
+    intro H4; left; exists H2; apply H4.
+    intro H5; right; exists H2; apply H5.
+  Qed.
+
+  Lemma ex_5_9_b:
+    (ex P)\/(ex Q) -> exists x:A, P x \/ Q x.
+  Proof.
+    intro H1.
+    elim H1.
+    intro H2; elim H2; intros H3 H4; exists H3.
+    left; assumption.
+    intro H2; elim H2; intros H3 H4; exists H3.
+    right; assumption.
+  Qed.
+
+  Lemma ex_5_9_c:
+    (exists  x:A, (forall R:A -> Prop, R x)) ->
+    2 = 3.
+  Proof.
+    intro H1.
+    elim H1.
+    intros H2 H3.
+    assert False as H4.
+    apply H3 with (R := fun (x:A) => False).
+    elim H4.
+  Qed.
+
+  Lemma ex_5_9_d:
+    (forall x:A, P x) -> ~(exists y:A, ~P y).
+  Proof.
+    intros H1 H2.
+    elim H2.
+    intros H3 H4.
+    apply H4, H1.
+  Qed.
+
+End ex_5_9.
