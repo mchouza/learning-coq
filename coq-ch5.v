@@ -314,6 +314,41 @@ Proof.
   contradiction.
 Qed.
 
+Lemma modus_tollens:
+  forall P Q:Prop, (P->Q)->(~Q->~P).
+Proof.
+  intros P Q H1 H2 H3.
+  assert Q as H4.
+  apply H1, H3.
+  contradiction.
+Qed.
+
 Lemma dmnan_implies_implies_to_or:
   de_morgan_not_and_not -> implies_to_or.
+Proof.
+  unfold de_morgan_not_and_not, implies_to_or.
+  intros H P Q.
+  intro H1.
+  apply H.
+  intro H2.
+  assert (~Q->~P) as H3.
+  apply modus_tollens; assumption.
+  assert (~P); apply H3.
+  apply H2.
+  apply H2.
+  assert (~~P) as H4.
+  apply H2.
+  contradiction.
+Qed.
+
+Lemma implies_and:
+  forall P Q R:Prop, 
+  (P->Q)->(P->R)->(P->(Q/\R)).
+Proof.
+  intros P Q R H1 H2 H3.
+  split; [apply H1 | apply H2]; assumption.
+Qed.
+
+Lemma implies_to_or_implies_peirce:
+  implies_to_or -> peirce.
 (* TO BE PROVED *)
