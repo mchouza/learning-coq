@@ -341,14 +341,43 @@ Proof.
   contradiction.
 Qed.
 
-Lemma implies_and:
-  forall P Q R:Prop, 
-  (P->Q)->(P->R)->(P->(Q/\R)).
-Proof.
-  intros P Q R H1 H2 H3.
-  split; [apply H1 | apply H2]; assumption.
-Qed.
-
 Lemma implies_to_or_implies_peirce:
   implies_to_or -> peirce.
-(* TO BE PROVED *)
+Proof.
+  unfold implies_to_or, peirce.
+  intros H1 P Q.
+  assert (~P\/P) as H2.
+  apply H1; intro H3; assumption.
+  elim H2.
+  intros H4 H5.
+  apply H5; intro H6; contradiction.
+  intros H7 H8; assumption.
+Qed.
+
+Lemma five_circ_impl_implies_equiv:
+  forall P Q R S T:Prop,
+  (P->Q)/\(Q->R)/\(R->S)/\(S->T)/\(T->P) ->
+  (P<->Q)/\(Q<->R)/\(R<->S)/\(S<->T).
+Proof.
+  intros P Q R S T H.
+  repeat split.
+  apply H. intro H'; do 4 apply H; assumption.
+  apply H. intro H'; do 4 apply H; assumption.
+  apply H. intro H'; do 4 apply H; assumption.
+  apply H. intro H'; do 4 apply H; assumption.
+Qed.
+
+Theorem classical_axioms_equiv:
+  (peirce <-> classic) /\
+  (classic <-> excluded_middle) /\
+  (excluded_middle <-> de_morgan_not_and_not) /\
+  (de_morgan_not_and_not <-> implies_to_or).
+Proof.
+  apply five_circ_impl_implies_equiv.
+  repeat split.
+  apply peirce_implies_classic.
+  apply classic_implies_excluded_middle.
+  apply excluded_middle_implies_dmnan.
+  apply dmnan_implies_implies_to_or.
+  apply implies_to_or_implies_peirce.
+Qed. 
