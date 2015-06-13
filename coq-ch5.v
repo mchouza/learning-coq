@@ -458,3 +458,25 @@ Proof.
   rewrite H2.
   reflexivity.
 Qed.
+
+(** Exercise 5.11 **)
+
+Theorem eq_trans:
+  forall (A:Type)(x y z:A), 
+  x = y -> y = z -> x = z.
+Proof.
+  intros A x y z H0 H1.
+  Check eq_ind.
+  apply eq_ind with
+    (x := y)(y := x)(P := fun a:A => a = z).
+  assumption.
+  symmetry; assumption.
+Qed.
+
+Theorem eq_trans_2:
+  forall (A:Type)(x y z:A), 
+  x = y -> y = z -> x = z.
+Proof.
+  intros A x y z H0 H1.
+  rewrite H0; assumption.
+Qed.
