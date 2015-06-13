@@ -439,3 +439,22 @@ Section ex_5_9.
   Qed.
 
 End ex_5_9.
+
+(** Exercise 5.10 **)
+
+Require Import Arith.
+
+Theorem plus_permute2:
+  forall n m p:nat, n+m+p = n+p+m.
+Proof.
+  intros.
+  assert (n+(m+p) = n+m+p) as H0.
+  apply plus_assoc.
+  assert (n+(p+m) = n+p+m) as H1.
+  apply plus_assoc.
+  rewrite <-H0, <-H1.
+  assert (m + p = p + m) as H2.
+  apply plus_comm.
+  rewrite H2.
+  reflexivity.
+Qed.
