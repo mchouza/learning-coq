@@ -480,3 +480,87 @@ Proof.
   intros A x y z H0 H1.
   rewrite H0; assumption.
 Qed.
+
+(** Exercise 5.12 **)
+
+Definition my_True: Prop :=
+  forall P:Prop, P->P.
+
+Definition my_False: Prop :=
+  forall P:Prop, P.
+
+Theorem my_I: my_True.
+Proof.
+  intros P p.
+  assumption.
+Qed.
+
+Theorem my_False_ind:
+  forall P:Prop, my_False -> P.
+Proof.
+  intros P H.
+  apply H.
+Qed.
+
+Check (fun (P:Prop)(p:P) => p).
+
+Check (fun (P:Prop)(mf:my_False) => mf P).
+
+(** Exercise 5.13 **)
+
+Definition my_not (P:Prop) := P -> my_False.
+
+Lemma Ex_5_13_1: my_not my_False.
+Proof.
+  intro H.
+  exact H.
+Qed.
+
+Lemma Ex_5_13_2:
+  forall P:Prop, 
+  my_not (my_not (my_not P)) -> my_not P.
+Proof.
+  unfold my_not.
+  intros P H1 p.
+  apply H1.
+  intro H2.
+  apply H2.
+  assumption.
+Qed.
+
+Lemma Ex_5_13_3:
+  forall P Q:Prop,
+  my_not (my_not (my_not P)) -> P -> Q.
+Proof.
+  intros P Q H p.
+  assert (my_not P).
+  apply Ex_5_13_2; assumption.
+  (* new ending *)
+  assert (my_False) as H1.
+  apply H0; assumption.
+  apply H1.
+Qed.
+
+Lemma Ex_5_13_4:
+  forall P Q:Prop,
+  (P->Q) -> (my_not Q) -> (my_not P).
+Proof.
+  unfold my_not.
+  intros p q H1 H2 H3.
+  apply H2, H1, H3.
+Qed.
+
+Lemma Ex_5_13_5:
+  forall P Q R:Prop,
+  (P->Q)->(P->(my_not Q))->P->R.
+Proof.
+  intros P Q R H1 H2 H3.
+  (* new ending *)
+  assert Q as H4.
+  apply H1; assumption.
+  assert (my_not Q) as H5.
+  apply H2; assumption.
+  assert (my_False) as H6.
+  apply H5, H4.
+  apply H6.
+Qed.
