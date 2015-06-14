@@ -443,3 +443,125 @@ Eval compute in (pos_div_4 1).
 Eval compute in (pos_div_4 2).
 Eval compute in (pos_div_4 3).
 Eval compute in (pos_div_4 4).
+
+(** Exercise 6.22 **)
+
+Definition pos_mult(n m:positive) : positive :=
+  match Zmult (Zpos n) (Zpos m) with
+  | Zpos p => p
+  | _ => 1%positive (* WON'T HAPPEN *)
+  end.
+
+Eval compute in 
+  (pos_mult 30%positive 41%positive).
+
+Definition Z_new_mult(n m:Z) : Z :=
+  match n, m with
+  | Zpos p, Zpos q => Zpos (pos_mult p q)
+  | Z0, _ => 0%Z
+  | _, Z0 => 0%Z
+  | Zneg p, Zneg q => Zpos (pos_mult p q)
+  | Zpos p, Zneg q => Zneg (pos_mult p q)
+  | Zneg p, Zpos q => Zneg (pos_mult p q)
+  end.
+
+Eval compute in (Z_new_mult 0 0).
+Eval compute in (Z_new_mult 23 0).
+Eval compute in (Z_new_mult 23 23).
+Eval compute in (Z_new_mult 0 23).
+Eval compute in (Z_new_mult 0 (-23)).
+Eval compute in (Z_new_mult (-23) 0).
+Eval compute in (Z_new_mult (-23) (-23)).
+Eval compute in (Z_new_mult (-23) 23).
+Eval compute in (Z_new_mult 23 (-23)).
+
+(** Exercise 6.23 **)
+
+Inductive L : Set :=
+  | L_False
+  | L_True
+  | L_and : L -> L -> L
+  | L_or : L -> L -> L
+  | L_implies : L -> L -> L
+  | L_not : L -> L.
+
+Check (L_and (L_not L_False) 
+             (L_or L_True L_False)).
+
+(** Exercise 6.24 **)
+
+Inductive my_Rat : Set :=
+  | mrOne
+  | mrN : my_Rat -> my_Rat
+  | mrD : my_Rat -> my_Rat.
+
+(** Exercise 6.25 **)
+
+(* Definition *)
+
+Inductive Z_btree : Set :=
+  | Z_leaf : Z_btree
+  | Z_bnode : Z -> Z_btree -> Z_btree -> Z_btree.
+
+(* To do *)
+
+Fixpoint value_present 
+         (value:Z) (tree:Z_btree) : bool :=
+  match tree with
+  | Z_leaf => false
+  | Z_bnode v l r =>
+    if (Zeq_bool value v)
+    then true
+    else 
+      if (value_present value l)
+      then true
+      else (value_present value r)
+  end.
+
+Eval compute in 
+(value_present 
+  3
+  (Z_bnode 5
+    (Z_bnode 3 Z_leaf Z_leaf)
+    (Z_bnode 4 Z_leaf Z_leaf))).
+
+Eval compute in 
+(value_present 
+  4
+  (Z_bnode 5
+    (Z_bnode 3 Z_leaf Z_leaf)
+    (Z_bnode 4 Z_leaf Z_leaf))).
+
+Eval compute in 
+(value_present 
+  7
+  (Z_bnode 5
+    (Z_bnode 3 Z_leaf Z_leaf)
+    (Z_bnode 4 Z_leaf Z_leaf))).
+
+(** Exercise 6.26 **)
+
+Fixpoint power (base:Z) (exp:nat) : Z :=
+  match exp with
+  | O => 1%Z
+  | S p => Zmult base (power base p)
+  end.
+
+Eval compute in (power (-2) 5).
+
+Fixpoint discrete_log (p:positive) : nat :=
+  match p with
+  | xO q => 1 + discrete_log q
+  | xI q => 1 + discrete_log q
+  | xH => 0
+  end.
+
+Eval compute in (discrete_log 1).
+Eval compute in (discrete_log 2).
+Eval compute in (discrete_log 3).
+Eval compute in (discrete_log 4).
+Eval compute in (discrete_log 7).
+Eval compute in (discrete_log 8).
+Eval compute in (discrete_log 1023).
+Eval compute in (discrete_log 1024).
+Eval compute in (discrete_log 1025).
