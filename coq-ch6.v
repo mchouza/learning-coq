@@ -269,3 +269,32 @@ Eval compute in (is_January January).
 
 Eval compute in (is_January October).
 
+(** Exercise 6.11 **)
+
+Theorem false_is_not_true: true <> false.
+Proof.
+  unfold not; intros.
+  change ((fun b:bool => match b with
+           | true => True
+           | false => False
+           end) false).
+  rewrite <-H.
+  trivial.
+Qed.
+
+(** Exercise 6.12 **)
+
+Theorem bicycles_are_not_motorized:
+  forall m n1 n2:nat,
+  bicycle m <> motorized n1 n2.
+Proof.
+  unfold not; intros.
+  change ((fun v:vehicle => 
+           match v with
+           | bicycle m => True
+           | _ => False
+           end) (motorized n1 n2)).
+  rewrite <-H.
+  trivial.
+Qed.
+
