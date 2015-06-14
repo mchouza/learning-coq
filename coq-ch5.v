@@ -779,4 +779,12 @@ Proof.
   exact H3.
 Qed.
 
-Lemma 
+Lemma my_le_le:
+  forall n p:nat, my_le n p -> n <= p.
+Proof.
+  unfold my_le.
+  intros n p H1.
+  apply H1.
+  apply le_n.
+  apply le_S.
+Qed.
