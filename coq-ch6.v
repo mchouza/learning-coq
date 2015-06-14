@@ -384,3 +384,62 @@ Eval compute in
 Eval compute in (1+2+5+10+17+26).
 (* 61 = 1 + 2 + 5 + 10 + 17 + 26 *)
 
+(** Exercise 6.18 **)
+
+Fixpoint two_power (n:nat) : nat :=
+  match n with
+  | 0 => 1
+  | S p => 2 * (two_power p)
+  end.
+
+Eval compute in (two_power 0).
+Eval compute in (two_power 1).
+Eval compute in (two_power 2).
+Eval compute in (two_power 7).
+Eval compute in (two_power 9).
+
+(** Exercise 6.19 **)
+
+(* 1000 = 512 + 256 + 128 + 64 + 32 + 8 *)
+Eval compute in (xO (xO (xO (xI (xO (xI (xI
+                (xI (xI xH))))))))).
+
+(* 25 = 16 + 8 + 1 *)
+Eval compute in (xI (xO (xO (xI xH)))).
+
+(* 512 = 512 *)
+Eval compute in (xO (xO (xO (xO (xO (xO (xO
+                (xO (xO xH))))))))).
+
+(** Exercise 6.20 **)
+
+Definition pos_even_bool (n:positive) : bool :=
+  match n with
+  | xO p => true
+  | _ => false
+  end.
+
+Eval compute in (pos_even_bool 391372%positive).
+Eval compute in (pos_even_bool 757575%positive).
+Eval compute in (pos_even_bool 1%positive).
+
+(** Exercise 6.21 **)
+
+Definition pos_div_4 (n:positive) : Z :=
+  match n with
+  | xO ( xO p ) => Zpos p
+  | xO ( xI p ) => Zpos p
+  | xI ( xO p ) => Zpos p
+  | xI ( xI p ) => Zpos p
+  | _ => 0%Z
+  end.
+
+Eval compute in (pos_div_4 100).
+Eval compute in (pos_div_4 101).
+Eval compute in (pos_div_4 102).
+Eval compute in (pos_div_4 103).
+Eval compute in (pos_div_4 104).
+Eval compute in (pos_div_4 1).
+Eval compute in (pos_div_4 2).
+Eval compute in (pos_div_4 3).
+Eval compute in (pos_div_4 4).
