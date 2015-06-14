@@ -564,3 +564,81 @@ Proof.
   apply H5, H4.
   apply H6.
 Qed.
+
+(** Exercise 5.14 **)
+
+(* Given *)
+
+Section leibniz.
+  Set Implicit Arguments.
+  Unset Strict Implicit.
+  Variable A : Set.
+
+  Definition leibniz (a b:A) : Prop :=
+    forall P:A -> Prop, P a -> P b.
+
+  Require Import Relations.
+
+  Theorem leibniz_sym: symmetric A leibniz.
+  Proof.
+    unfold symmetric, leibniz.
+    intros x y H Q.
+    apply H.
+    trivial.
+  Qed.
+
+  (* to prove *)
+
+  Theorem leibniz_refl: reflexive A leibniz.
+  Proof.
+    unfold reflexive, leibniz.
+    intros x P.
+    trivial.
+  Qed.
+
+  Theorem leibniz_trans: transitive A leibniz.
+  Proof.
+    unfold transitive, leibniz.
+    intros x y z H1 H2 P H3.
+    apply H2, H1; assumption.
+  Qed.
+
+  Theorem leibniz_equiv: equiv A leibniz.
+  Proof.
+    unfold equiv.
+    repeat split.
+    apply leibniz_refl.
+    apply leibniz_trans.
+    apply leibniz_sym.
+  Qed.
+
+  Theorem leibniz_least_reflexive:
+    forall R:relation A, 
+    reflexive A R -> inclusion A leibniz R.
+  Proof.
+    unfold relation, reflexive, inclusion,
+           leibniz.
+    intros R H1 x y H2.
+    apply H2, H1.
+  Qed.
+
+  Theorem leibniz_eq: 
+    forall a b:A, leibniz a b -> a = b.
+  Proof.
+    unfold leibniz.
+    intros a b H.
+    apply H; reflexivity.
+  Qed.
+
+  Theorem leibniz_ind:
+    forall (x:A)(P:A->Prop),
+    P x -> forall y:A, leibniz x y -> P y.
+  Proof.
+    unfold leibniz.
+    intros x P H1 y H2.
+    apply H2; assumption.
+  Qed.
+
+  Unset Implicit Arguments.
+
+End leibniz.
