@@ -201,3 +201,71 @@ Proof.
   intros b1 b2 b3.
   elim b1; elim b2; elim b3; simpl; reflexivity.
 Qed.
+
+(** Exercise 6.7 **)
+
+(* Definitions *)
+
+Require Import ZArith.
+
+Record plane : Set := 
+  point { abscissa : Z; ordinate : Z }.
+
+(* To solve *)
+
+(* The type of plane_rec should be
+   forall P:plane -> Set,
+     (forall abscissa ordinate:Z, 
+      P (point abscissa ordinate)) ->
+     (forall p:plane, P p) *)
+Check plane_rec.
+(* Seem similar *)
+
+(** Exercise 6.8 **)
+
+Definition manhattan (p q:plane) : Z :=
+  Zplus
+  (Zabs ((abscissa p) - (abscissa q)))
+  (Zabs ((ordinate p) - (ordinate q))).
+
+Eval compute in (manhattan (point 5 8)
+                           (point 1 34)).
+
+(** Exercise 6.9 **)
+
+(* Given *)
+
+Inductive vehicle : Set :=
+    bicycle : nat -> vehicle 
+  | motorized : nat -> nat -> vehicle.
+
+(* Solve *)
+
+(* The type of vehicle_rec should be
+   forall P:vehicle -> Set,
+     (forall n:nat, P (bicycle n)) ->
+     (forall n n0:nat, P (motorized n n0)) ->
+   forall v:vehicle, P v *)
+
+Definition nb_seats (v:vehicle) :=
+  (vehicle_rec (fun v:vehicle => nat)
+               (fun n:nat => n)
+               (fun n _:nat => n)) v.
+
+Eval compute in (nb_seats (bicycle 3)).
+Eval compute in (nb_seats (motorized 4 5)).
+
+(** Exercise 6.10 **)
+
+Check month_rect.
+
+Definition is_January (m:month) :=
+  month_rect (fun m:month => Prop)
+  True  False False False False False
+  False False False False False False
+  m.
+
+Eval compute in (is_January January).
+
+Eval compute in (is_January October).
+
