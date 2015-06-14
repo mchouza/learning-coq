@@ -642,3 +642,112 @@ Section leibniz.
   Unset Implicit Arguments.
 
 End leibniz.
+
+(** Exercise 5.15 **)
+
+(* Definitions given *)
+
+Definition my_and (P Q:Prop) :=
+  forall R:Prop, (P->Q->R)->R.
+
+Definition my_or (P Q:Prop) :=
+  forall R:Prop, (P->R)->(Q->R)->R.
+
+Definition my_ex (A:Set)(P:A->Prop) :=
+  forall R:Prop, (forall x:A, P x -> R)->R.
+
+(* To prove *)
+
+Lemma ex_5_15_1:
+  forall P Q:Prop, my_and P Q -> P.
+Proof.
+  unfold my_and.
+  intros P Q H.
+  apply H.
+  intros p q; assumption.
+Qed.
+
+Lemma ex_5_15_2:
+  forall P Q:Prop, my_and P Q -> Q.
+Proof.
+  unfold my_and.
+  intros P Q H.
+  apply H.
+  intros p q; assumption.
+Qed.
+
+Lemma ex_5_15_3:
+  forall P Q R:Prop,
+  (P->Q->R) -> my_and P Q -> R.
+Proof.
+  unfold my_and.
+  intros P Q R H1 H2.
+  apply H2; assumption.
+Qed.
+
+Lemma ex_5_15_4:
+  forall P Q:Prop, P -> my_or P Q.
+Proof.
+  unfold my_or.
+  intros P Q p R.
+  intros H1 H2.
+  apply H1; assumption.
+Qed.
+
+Lemma ex_5_15_5:
+  forall P Q:Prop, Q -> my_or P Q.
+Proof.
+  unfold my_or.
+  intros P Q q R.
+  intros H1 H2.
+  apply H2; assumption.
+Qed.
+
+Lemma ex_5_15_6:
+  forall P Q R:Prop,
+  (P->R) -> (Q->R) -> my_or P Q -> R.
+Proof.
+  unfold my_or.
+  intros P Q R H1 H2 H3.
+  apply H3; assumption.
+Qed.
+
+Lemma ex_5_15_7:
+  forall P:Prop, my_or P my_False -> P.
+Proof.
+  unfold my_or, my_False.
+  intros P H1.
+  apply H1; trivial.
+  intros H2.
+  apply H2.
+Qed.
+
+Lemma ex_5_15_8:
+  forall P Q:Prop, my_or P Q -> my_or Q P.
+Proof.
+  unfold my_or.
+  intros P Q H1 R H2 H3.
+  apply H1; assumption.
+Qed.
+
+Lemma ex_5_15_9:
+  forall (A:Set)(P:A->Prop)(a:A),
+  P a -> my_ex A P.
+Proof.
+  unfold my_ex.
+  intros A P a H1 R H2.
+  apply H2 with (x := a), H1.
+Qed.
+
+Lemma ex_5_15_10:
+  forall (A:Set)(P:A->Prop),
+  my_not (my_ex A P) ->
+  forall a:A, my_not (P a).
+Proof.
+  unfold my_ex, my_not.
+  intros A P H1 a H2.
+  apply H1.
+  intros R H3.
+  apply H3 with (x := a).
+  assumption.
+Qed.
