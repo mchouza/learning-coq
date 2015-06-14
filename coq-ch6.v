@@ -565,3 +565,86 @@ Eval compute in (discrete_log 8).
 Eval compute in (discrete_log 1023).
 Eval compute in (discrete_log 1024).
 Eval compute in (discrete_log 1025).
+
+(** Exercise 6.27 **)
+
+(* Given *)
+
+Inductive Z_fbtree : Set :=
+  | Z_fleaf : Z_fbtree
+  | Z_fnode : Z->(bool->Z_fbtree)->Z_fbtree.
+
+(* To do *)
+
+Fixpoint fzero_present (t:Z_fbtree) : bool :=
+  match t with
+  | Z_fleaf => false
+  | Z_fnode v f => 
+      if (Zeq_bool v 0) 
+      then true 
+      else
+        if fzero_present (f true)
+        then true
+        else fzero_present (f false)
+  end.
+
+(* to easily build functions from bool to 
+   trees *)
+Definition bbf (t f:Z_fbtree) :
+           (bool -> Z_fbtree) :=
+  bool_rec (fun b:bool => Z_fbtree) t f.
+
+Eval compute in
+  (fzero_present 
+     (Z_fnode 
+       3
+       (bbf Z_fleaf
+            (Z_fnode
+              5
+              (bbf Z_fleaf Z_fleaf))))).
+
+Eval compute in
+  (fzero_present 
+     (Z_fnode 
+       3
+       (bbf Z_fleaf
+            (Z_fnode
+              0
+              (bbf Z_fleaf Z_fleaf))))).
+
+(** Exercise 6.28 **)
+
+(* Given *)
+
+Inductive Z_inf_branch_tree : Set :=
+  | Z_inf_leaf : Z_inf_branch_tree
+  | Z_inf_node :
+      Z->(nat->Z_inf_branch_tree)->
+        Z_inf_branch_tree.
+
+(* To do *)
+
+Fixpoint n_check_if_true
+  (n:nat) (f:nat->bool) : bool :=
+  match n with
+  | O => f O
+  | S m => if f (S m)
+           then true
+           else n_check_if_true m f
+  end.
+
+Fixpoint n_zero_present
+  (n:nat) (t:Z_inf_branch_tree) : bool :=
+  match t with
+  | Z_inf_leaf => false
+  | Z_inf_node v f =>
+      if (Zeq_bool v 0)
+      then true
+      else
+        (n_check_if_true
+           n
+           (fun x:nat => 
+            n_zero_present n (f x)))
+  end.
+
+(* TODO: ADD TESTS!!! *)
