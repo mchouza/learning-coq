@@ -329,3 +329,58 @@ Qed.
 
 *)
 
+(** Exercise 6.14 **)
+
+(*
+(mult 0 0) -> 0 (first rule)
+(mult 0 m) -> 0 (first rule)
+(mult (S n) 0) -> 0 + mult n 0 (second rule)
+(mult 0 (S m)) -> 0 (first rule)
+(mult (S n) m) -> m + mult n m (second rule)
+(mult (S(S n)) m) -> m + mult (S n) m 
+  (second rule)
+*)
+
+(** Exercise 6.15 **)
+
+Fixpoint true_if_lt_3 (n:nat) : bool :=
+  match n with
+  | S (S (S p)) => false
+  | _ => true
+  end.
+
+Eval compute in (true_if_lt_3 0).
+Eval compute in (true_if_lt_3 1).
+Eval compute in (true_if_lt_3 2).
+Eval compute in (true_if_lt_3 3).
+Eval compute in (true_if_lt_3 4).
+
+(** Exercise 6.16 **)
+
+Fixpoint add_2nd (n m:nat) : nat :=
+  match m with
+  | 0 => n
+  | S p => S(add_2nd n p)
+  end.
+
+Eval compute in (add_2nd 0 0).
+Eval compute in (add_2nd 4 0).
+Eval compute in (add_2nd 0 3).
+Eval compute in (add_2nd 3 2).
+
+(** Exercise 6.17 **)
+
+Require Import Znat.
+
+Fixpoint sum_f (n:nat) (f:nat->Z) : Z :=
+  match n with
+  | 0 => f 0
+  | S p => Zplus (f (S p)) (sum_f p f)
+  end.
+
+Eval compute in
+  (sum_f 5 
+         (fun p:nat => Z_of_nat(p * p + 1))).
+Eval compute in (1+2+5+10+17+26).
+(* 61 = 1 + 2 + 5 + 10 + 17 + 26 *)
+
