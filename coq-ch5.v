@@ -751,3 +751,32 @@ Proof.
   apply H3 with (x := a).
   assumption.
 Qed.
+
+(** Exercise 5.16 **)
+
+(* Given *)
+
+Definition my_le (n p:nat) :=
+  forall P:nat -> Prop,
+  P n -> (forall q:nat, P q -> P (S q)) -> P p.
+
+(* To prove *)
+
+Lemma my_le_n:
+  forall n:nat, my_le n n.
+Proof.
+  unfold my_le.
+  intros n P H1 _; assumption.
+Qed.
+
+Lemma my_le_S:
+  forall n p:nat, my_le n p -> my_le n (S p).
+Proof.
+  unfold my_le.
+  intros n p H1 P H2 H3.
+  apply H3, H1.
+  assumption.
+  exact H3.
+Qed.
+
+Lemma 
