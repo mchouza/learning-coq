@@ -298,3 +298,34 @@ Proof.
   trivial.
 Qed.
 
+(** Exercise 6.13 **)
+
+Require Import Arith.
+
+(* COMMENTED BECAUSE TO AVOID LEAVING False
+   PROVED
+
+Record RatPlus : Set :=
+  mkRat {top:nat; bottom:nat; 
+         bottom_condition: bottom <> 0}.
+
+Axiom eq_RatPlus : 
+  forall r r':RatPlus,
+    top r * bottom r' = top r' * bottom r ->
+    r = r'.
+
+Theorem tnt: False.
+Proof.
+  assert (2<>0) as H1; auto.
+  assert (4<>0) as H2; auto.
+  assert ((mkRat 1 2 H1) = (mkRat 2 4 H2))
+         as H3.
+  apply eq_RatPlus; simpl; auto.
+  assert ((mkRat 1 2 H1) <> (mkRat 2 4 H2))
+         as H4.
+  discriminate.
+  apply H4; assumption.
+Qed.
+
+*)
+
