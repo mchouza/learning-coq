@@ -88,3 +88,116 @@ Proof.
   right; reflexivity.
 Qed.
 
+(** Exercise 6.4 **)
+
+(* Already done that way *)
+
+(** Exercise 6.5 **)
+
+Definition even_days (m:month) (leap:bool) :=
+  match m with
+  | February => if leap then false else true
+  | April => true     | June => true
+  | September => true | November => true
+  | _ => false
+  end.
+
+(** Exercise 6.6 **)
+
+Definition bool_xor (b1 b2:bool) : bool :=
+  match b1, b2 with
+  | false, false => false
+  | false, true => true
+  | true, false => true
+  | true, true => false
+  end.
+
+Definition bool_and (b1 b2:bool) : bool :=
+  match b1, b2 with
+  | true, true => true
+  | _, _ => false
+  end.
+
+Definition bool_or (b1 b2:bool) : bool :=
+  match b1, b2 with
+  | false, false => false
+  | _, _ => true
+  end.
+
+Definition bool_eq (b1 b2:bool) : bool :=
+  match b1, b2 with
+  | false, false => true
+  | true, true => true
+  | _, _ => false
+  end.
+
+Definition bool_not (b:bool) : bool :=
+  match b with
+  | false => true
+  | true => false
+  end.
+
+Theorem ex_6_6_1:
+  forall b1 b2:bool,
+  bool_xor b1 b2 = bool_not (bool_eq b1 b2).
+Proof.
+  intros b1 b2.
+  elim b1; elim b2; simpl; reflexivity.
+Qed.
+
+Theorem ex_6_6_2:
+  forall b1 b2:bool,
+  bool_not (bool_and b1 b2) =
+  bool_or (bool_not b1) (bool_not b2).
+Proof.
+  intros b1 b2.
+  elim b1; elim b2; simpl; reflexivity.
+Qed.
+
+Theorem ex_6_6_3:
+  forall b:bool, bool_not (bool_not b) = b.
+Proof.
+  intro b.
+  elim b; simpl; reflexivity.
+Qed.
+
+Theorem ex_6_6_4:
+  forall b:bool, bool_or b (bool_not b) = true.
+Proof.
+  intro b.
+  elim b; simpl; reflexivity.
+Qed.
+
+Theorem ex_6_6_5:
+  forall b1 b2:bool,
+  bool_eq b1 b2 = true -> b1 = b2.
+Proof.
+  intros b1 b2.
+  elim b1; elim b2; simpl; auto.
+Qed.
+
+Theorem ex_6_6_6:
+  forall b1 b2:bool,
+  b1 = b2 -> bool_eq b1 b2 = true.
+Proof.
+  intros b1 b2.
+  elim b1; elim b2; simpl; auto.
+Qed.
+
+Theorem ex_6_6_7:
+  forall b1 b2:bool,
+  bool_not (bool_or b1 b2) =
+  bool_and (bool_not b1) (bool_not b2).
+Proof.
+  intros b1 b2.
+  elim b1; elim b2; simpl; reflexivity.
+Qed.
+
+Theorem ex_6_6_8:
+  forall b1 b2 b3:bool,
+  bool_or (bool_and b1 b3) (bool_and b2 b3) =
+  bool_and (bool_or b1 b2) b3.
+Proof.
+  intros b1 b2 b3.
+  elim b1; elim b2; elim b3; simpl; reflexivity.
+Qed.
