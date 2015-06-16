@@ -648,3 +648,123 @@ Fixpoint n_zero_present
   end.
 
 (* TODO: ADD TESTS!!! *)
+
+(** Exercise 6.29 **)
+
+Theorem plus_n_O: forall n:nat, n = n + 0.
+Proof.
+  intros n.
+  elim n.
+  simpl; reflexivity.
+  intros m H.
+  simpl.
+  apply f_equal.
+  apply H.
+Qed.
+
+(** Exercise 6.30 **)
+
+(* TO BE DONE AFTER UPLOADING 6.27 & 6.28 *)
+
+(** Exercise 6.31 **)
+
+(* Given *)
+
+Fixpoint mult2 (n:nat) : nat :=
+  match n with
+  | 0 => 0
+  | S p => S (S (mult2 p))
+  end.
+
+(* To be done *)
+
+Theorem mult_2_eq_add_itself:
+  forall n:nat, (mult2 n) = n + n.
+Proof.
+  intros n.
+  elim n.
+  simpl; reflexivity.
+  intros n0 H.
+  simpl.
+  rewrite plus_comm.
+  simpl; repeat apply f_equal.
+  exact H.
+Qed.
+
+(** Exercise 6.32 **)
+
+(* Given *)
+
+Fixpoint sum_n (n:nat) : nat :=
+  match n with
+  | 0 => 0
+  | S p => S p + sum_n p
+  end.
+
+(* To be done *)
+
+Eval compute in (sum_n 5).
+
+Lemma plus_n_Sm:
+  forall n m:nat, n + S m = S(n + m).
+Proof.
+  intros n m.
+  rewrite plus_comm.
+  simpl; apply f_equal; apply plus_comm.
+Qed.
+
+Theorem sum_arith_prog:
+  forall n:nat, 2 * sum_n n = n * n + n.
+Proof.
+  intros n.
+  elim n.
+  simpl; reflexivity.
+  intros p H.
+  simpl; apply f_equal.
+  rewrite <-plus_n_O.
+  rewrite mult_comm; simpl.
+  rewrite <-plus_assoc.
+  repeat rewrite plus_n_Sm; apply f_equal.
+  rewrite plus_comm with (n := p) (m := p * p).
+  rewrite <-H.
+  simpl; rewrite <-plus_n_O.
+  rewrite plus_comm with (n := p) (m := sum_n p).
+  repeat rewrite plus_assoc; reflexivity.
+Qed.
+
+(* there is probably a much shorter proof... *)
+
+(** Exercise 6.33 **)
+
+Lemma le_rem_S:
+  forall n m: nat, n <= m -> S n <= S m.
+Proof.
+  intros n m H.
+  elim H.
+  apply le_n.
+  intros p H2 H3.
+  apply le_S.
+  exact H3.
+Qed.
+
+Lemma le_add_right:
+  forall n m p:nat, n <= m -> n <= m + p.
+Proof.
+  intros n m p H.
+  elim p.
+  rewrite <-plus_n_O; exact H.
+  intros q H2.
+  rewrite plus_n_Sm; apply le_S; exact H2.
+Qed.
+
+Lemma ex_6_33: forall n:nat, n <= sum_n n.
+Proof.
+  intros n.
+  elim n.
+  simpl; apply le_n.
+  intros m H.
+  simpl.
+  apply le_rem_S.
+  rewrite plus_comm.
+  apply le_add_right; exact H.
+Qed.
