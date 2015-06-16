@@ -768,3 +768,71 @@ Proof.
   rewrite plus_comm.
   apply le_add_right; exact H.
 Qed.
+
+(** Exercise 6.34 **)
+
+Require Import List.
+
+Definition first_two_elems {A:Set} (l:list A) :=
+  match l with
+  | f :: s :: tail => f :: s :: nil
+  | _ => nil
+  end.
+
+Compute first_two_elems (1 :: 2 :: 3 :: nil).
+Compute first_two_elems (1 :: 2 :: nil).
+Compute first_two_elems (1 :: nil).
+Compute first_two_elems (nil (A:=nat)).
+
+(** Exercise 6.35 **)
+
+Fixpoint first_n_elems {A:Set} (l:list A) (n:nat) : list A :=
+  match n, l with
+  | O, _ => nil
+  | _, nil => nil
+  | S p, h :: t => h :: first_n_elems t p
+  end.
+
+Compute first_n_elems (1 :: 2 :: 3 :: nil) 2.
+Compute first_n_elems (1 :: 2 :: 3 :: nil) 3.
+Compute first_n_elems (1 :: 2 :: 3 :: nil) 4.
+
+(** Exercise 6.36 **)
+
+Fixpoint sum_integer_list (l:list Z) : Z :=
+  match l with
+  | nil => 0%Z
+  | h :: t => Zplus h (sum_integer_list t)
+  end.
+
+Compute sum_integer_list (nil (A:=Z)).
+Compute sum_integer_list (1%Z :: 2%Z :: 3%Z :: nil).
+
+(** Exercise 6.37 **)
+
+Fixpoint list_n_ones (n:nat) : list nat :=
+  match n with
+  | O => nil
+  | S p => 1 :: list_n_ones p
+  end.
+
+Compute list_n_ones 0.
+Compute list_n_ones 1.
+Compute list_n_ones 2.
+Compute list_n_ones 3.
+
+(** Exercise 6.38 **)
+
+Fixpoint _list_n_arith_aux (n m:nat) : list nat :=
+  match n with
+  | O => nil
+  | S p => ((m + 1) - n) :: _list_n_arith_aux p m
+  end.
+
+Definition list_n_arith (n:nat) : list nat :=
+  _list_n_arith_aux n n.
+
+Compute list_n_arith 0.
+Compute list_n_arith 1.
+Compute list_n_arith 3.
+Compute list_n_arith 5.
