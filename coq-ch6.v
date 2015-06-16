@@ -565,3 +565,55 @@ Eval compute in (discrete_log 8).
 Eval compute in (discrete_log 1023).
 Eval compute in (discrete_log 1024).
 Eval compute in (discrete_log 1025).
+
+(** Exercise 6.27 **)
+
+(* TO BE UPLOADED *)
+
+(** Exercise 6.28 **)
+
+(* TO BE UPLOADED *)
+
+(** Exercise 6.29 **)
+
+Theorem plus_n_O: forall n:nat, n = n + 0.
+Proof.
+  intros n.
+  elim n.
+  simpl; reflexivity.
+  intros m H.
+  simpl.
+  apply f_equal.
+  apply H.
+Qed.
+
+(** Exercise 6.30 **)
+
+(* TO BE DONE AFTER UPLOADING 6.27 & 6.28 *)
+
+(** Exercise 6.31 **)
+
+(* Given *)
+
+Fixpoint mult2 (n:nat) : nat :=
+  match n with
+  | 0 => 0
+  | S p => S (S (mult2 p))
+  end.
+
+(* To be done *)
+
+Theorem mult_2_eq_add_itself:
+  forall n:nat, (mult2 n) = n + n.
+Proof.
+  intros n.
+  elim n.
+  simpl; reflexivity.
+  intros n0 H.
+  simpl.
+  rewrite plus_comm.
+  simpl; repeat apply f_equal.
+  exact H.
+Qed.
+
+  
