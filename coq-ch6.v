@@ -836,3 +836,40 @@ Compute list_n_arith 0.
 Compute list_n_arith 1.
 Compute list_n_arith 3.
 Compute list_n_arith 5.
+
+(** Exercise 6.39 **)
+
+(* Given *)
+
+Fixpoint nth_option (A:Set)(n:nat)(l:list A)
+  {struct l} :=
+  match n, l with
+  | O, cons a tl => Some a
+  | S p, cons a tl => nth_option A p tl
+  | n, nil => None
+  end.
+
+(* To do *)
+
+Fixpoint nth_option' (A:Set)(n:nat)(l:list A)
+  {struct n} :=
+  match n, l with
+  | O, cons a tl => Some a
+  | S p, cons a tl => nth_option A p tl
+  | n, nil => None
+  end.
+
+Theorem nth_option_equiv:
+  forall (A:Set) (n:nat) (l:list A),
+  nth_option A n l = nth_option' A n l.
+Proof.
+  intros A n l.
+  elim n.
+  elim l; simpl; reflexivity.
+  intros m H.
+  elim l; simpl; reflexivity.
+Qed.
+
+(** Exercise 6.40 **)
+
+(* TO BE DONE *)
