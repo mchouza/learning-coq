@@ -889,7 +889,7 @@ Fixpoint map (A B:Set) (l:list A) (f:A->B) :=
 Fixpoint split (A B:Set) (l:list (A*B)):
   list A * list B :=
   (map (A*B) A l (fst (A := A) (B := B)),
-  map (A*B) B l (snd (A := A) (B := B))).
+   map (A*B) B l (snd (A := A) (B := B))).
 
 Fixpoint combine 
   (A B:Set) (la:list A) (lb:list B):
@@ -901,4 +901,58 @@ Fixpoint combine
     (ha, hb) :: combine A B ta tb
   end.
 
-(* FIXME: THE THEOREM STILL NEEDS TO BE PROVED *)
+Lemma pair_first_snd:
+  forall (A B:Set) (ab:(A*B)),
+  ab = (fst ab, snd ab).
+Proof.
+  intros A B ab.
+  elim ab.
+  intros a b.
+  simpl; reflexivity.
+Qed.
+
+Lemma split_first_as_map:
+  forall (A B:Set) (lab:list (A*B)),
+  fst (split A B lab) =
+    map (A*B) A lab (fst (A:=A) (B:=B)).
+Proof.
+  intros A B lab.
+  elim lab.
+  simpl; reflexivity.
+  intros a l H.
+  simpl.
+  reflexivity.
+Qed.
+
+Lemma split_second_as_map:
+  forall (A B:Set) (lab:list (A*B)),
+  snd (split A B lab) =
+    map (A*B) B lab (snd (A:=A) (B:=B)).
+Proof.
+  intros A B lab.
+  elim lab.
+  simpl; reflexivity.
+  intros a l H.
+  simpl.
+  reflexivity.
+Qed.
+
+Theorem split_combine:
+  forall (A B:Set) (lab:list (A*B)),
+  lab = combine A B (fst (split A B lab))
+                    (snd (split A B lab)).
+Proof.
+  intros A B lab.
+  elim lab.
+  simpl; reflexivity.
+  intros a l H.
+  unfold combine, split, map.
+  simpl.
+  fold map.
+  fold combine.
+  rewrite <-pair_first_snd with (ab := a).
+  rewrite <-split_first_as_map.
+  rewrite <-split_second_as_map.
+  rewrite <-H.
+  reflexivity.
+Qed.
