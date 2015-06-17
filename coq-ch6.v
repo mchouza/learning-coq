@@ -873,3 +873,32 @@ Qed.
 (** Exercise 6.40 **)
 
 (* TO BE DONE *)
+
+(** Exercise 6.41 **)
+
+(* TO BE DONE *)
+
+(** Exercise 6.42 **)
+
+Fixpoint map (A B:Set) (l:list A) (f:A->B) :=
+  match l with
+  | h :: t => (f h) :: (map A B t f)
+  | nil => nil
+  end.
+
+Fixpoint split (A B:Set) (l:list (A*B)):
+  list A * list B :=
+  (map (A*B) A l (fst (A := A) (B := B)),
+  map (A*B) B l (snd (A := A) (B := B))).
+
+Fixpoint combine 
+  (A B:Set) (la:list A) (lb:list B):
+  list (A*B) :=
+  match la, lb with
+  | nil, _ => nil
+  | _, nil => nil
+  | ha :: ta, hb :: tb =>
+    (ha, hb) :: combine A B ta tb
+  end.
+
+(* FIXME: THE THEOREM STILL NEEDS TO BE PROVED *)
