@@ -956,3 +956,43 @@ Proof.
   rewrite <-H.
   reflexivity.
 Qed.
+
+(** Exercise 6.43 **)
+
+Inductive btree (A:Set) : Set :=
+  | btree_leaf : (btree A)
+  | btree_node :
+      A -> (btree A) -> (btree A) -> (btree A).
+
+Fixpoint z_btree_from_polym (t:btree Z) := 
+  match t with
+  | btree_leaf => Z_leaf
+  | btree_node v l r =>
+      Z_bnode v 
+              (z_btree_from_polym l)
+              (z_btree_from_polym r)
+  end.
+
+Fixpoint polym_from_z_btree (t:Z_btree) :=
+  match t with
+  | Z_leaf => (btree_leaf Z)
+  | Z_bnode v l r =>
+      (btree_node Z
+                  v
+                  (polym_from_z_btree l)
+                  (polym_from_z_btree r))
+  end.
+
+Theorem btree_translation:
+  forall (t:Z_btree),
+  z_btree_from_polym (polym_from_z_btree t) = t.
+Proof.
+  intros t.
+  elim t.
+  simpl; reflexivity.
+  intros z t2 H1 t3 H2.
+  simpl.
+  rewrite H1, H2.
+  reflexivity.
+Qed.
+
