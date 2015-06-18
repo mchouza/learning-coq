@@ -1055,3 +1055,25 @@ Fixpoint update_primes (k:nat)
       end
   end.
 
+Compute (update_primes 15
+         ((2, 14) :: (3, 15) :: (5, 15) ::
+          (7, 14) :: nil)).
+
+Fixpoint prime_sieve (k:nat) : list (nat*nat) :=
+  match k with
+  | 0 => nil
+  | 1 => nil
+  | S p =>
+      let (upd_prime_list, upd) :=
+        update_primes k (prime_sieve p) in
+        match upd with
+        | true => upd_prime_list
+        | false => (k, k + k) :: upd_prime_list
+        end
+  end.
+
+Compute (prime_sieve 2).
+Compute (prime_sieve 3).
+Compute (prime_sieve 20).
+Compute (prime_sieve 100).
+Compute (prime_sieve 97).
