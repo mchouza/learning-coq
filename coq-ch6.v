@@ -996,3 +996,62 @@ Proof.
   reflexivity.
 Qed.
 
+(** Exercise 6.44 **)
+
+(* N(x) = 1 + x *)
+(* D(x) = 1 / (1 + 1/x) *)
+(* if we use x = p/q *)
+(* N(p/q) = 1 + p/q = (p+q)/q *)
+(* D(p/q) = 1/(1+1/(p/q)) = 1/(1+q/p)
+          = 1/((q+p)/p) = p/(q+p) *)
+
+Fixpoint get_num_denom (r:my_Rat) : (nat*nat) :=
+  match r with
+  | mrOne => (1, 1)
+  | mrN r' =>
+      let (p, q) := get_num_denom r' in
+        (p + q, q)
+  | mrD r' =>
+      let (p, q) := get_num_denom r' in
+        (p, q + p)
+  end.
+
+(** Exercise 6.45 **)
+
+(* Given *)
+
+Inductive cmp : Set :=
+  | Less : cmp
+  | Equal : cmp
+  | Greater : cmp.
+
+(* To do *)
+
+Fixpoint three_way_compare (a b:nat) : cmp :=
+  match a, b with
+  | 0, 0 => Equal
+  | S c, 0 => Greater
+  | 0, S d => Less
+  | S c, S d => three_way_compare c d
+  end.
+
+Compute (three_way_compare 3 3).
+Compute (three_way_compare 1 3).
+Compute (three_way_compare 5 3).
+Compute (three_way_compare 0 3).
+Compute (three_way_compare 3 0).
+Compute (three_way_compare 0 0).
+
+Fixpoint update_primes (k:nat)
+  (pml:list (nat*nat)) :
+    ((list (nat*nat))*bool) :=
+  match pml with
+  | nil => (nil, false)
+  | (p, m) :: t =>
+    let (nt, found) := update_primes k t in
+      match three_way_compare m k with
+      | Equal => ((p, m + p) :: nt, true)
+      | _ => ((p, m) :: nt, found)
+      end
+  end.
+
