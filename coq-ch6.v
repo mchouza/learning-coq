@@ -876,7 +876,23 @@ Qed.
 
 (** Exercise 6.41 **)
 
-(* TO BE DONE *)
+Fixpoint ex_6_41 (A:Set) (f:A->bool) 
+  (l:list A) : option A :=
+  match l with
+  | nil => None
+  | h :: t => if (f h) 
+              then Some h
+              else ex_6_41 A f t
+  end.
+
+Compute (ex_6_41 Z
+                 (fun (n:Z) => (Zeq_bool n 7))
+                 (1 :: 9 :: 5 :: 6 :: nil)%Z).
+
+Compute (ex_6_41 Z
+                 (fun (n:Z) => (Zeq_bool n 7))
+                 (1 :: 9 :: 7 :: 6 :: nil)%Z).
+
 
 (** Exercise 6.42 **)
 
