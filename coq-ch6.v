@@ -1077,3 +1077,30 @@ Compute (prime_sieve 3).
 Compute (prime_sieve 20).
 Compute (prime_sieve 100).
 Compute (prime_sieve 97).
+
+Definition prime (k:nat) : Prop :=
+  forall d m:nat, 2 <= d < k -> m * d <> k.
+
+Fixpoint prime_in_list 
+  (p:nat) (pl:list (nat*nat)) :=
+  match pl with
+  | nil => False
+  | (q, _) :: t =>
+      match three_way_compare q p with
+      | Equal => True
+      | _ => prime_in_list p t
+      end
+  end.
+
+Compute (prime_in_list 7
+         ((2, 14) :: (3, 15) :: (5, 15) ::
+          (7, 14) :: nil)).
+
+Compute (prime_in_list 11
+         ((2, 14) :: (3, 15) :: (5, 15) ::
+          (7, 14) :: nil)).
+
+Theorem sieve_works:
+  forall k p:nat,
+  (prime p) /\ (p <= k) ->
+  (prime_in_list p (prime_sieve k)).
