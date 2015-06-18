@@ -1079,7 +1079,8 @@ Compute (prime_sieve 100).
 Compute (prime_sieve 97).
 
 Definition prime (k:nat) : Prop :=
-  forall d m:nat, 2 <= d < k -> m * d <> k.
+  forall d m:nat,
+  (2 <= k) /\ (2 <= d < k -> m * d <> k).
 
 Fixpoint prime_in_list 
   (p:nat) (pl:list (nat*nat)) :=
@@ -1100,7 +1101,29 @@ Compute (prime_in_list 11
          ((2, 14) :: (3, 15) :: (5, 15) ::
           (7, 14) :: nil)).
 
+Lemma nat_le_zero_is_zero:
+  forall n:nat, n <= 0 -> n = 0.
+Proof.
+  intros n H.
+  apply le_antisym.
+  exact H.
+  apply le_0_n.
+Qed.
+
 Theorem sieve_works:
   forall k p:nat,
   (prime p) /\ (p <= k) ->
   (prime_in_list p (prime_sieve k)).
+Proof.
+  intros k p H'.
+  destruct H' as [H1 H2].
+  induction k.
+  assert (p = 0) as H3.
+  apply nat_le_zero_is_zero; exact H2.
+  rewrite H3 in H1.
+  unfold prime in H1.
+  assert (2 = 0) as H4.
+  apply nat_le_zero_is_zero.
+  apply H1; assumption.
+  discriminate.
+  
