@@ -1212,3 +1212,11 @@ Fixpoint binary_word_concat {n m:nat}
 Compute (binary_word_concat
          (bw_1 bw_x)
          (bw_1 (bw_0 (bw_1 bw_x)))).
+
+(** Exercise 6.49 **)
+
+Fixpoint binary_word_or {n:nat}
+  (b1:binary_word n) (b2:binary_word n):
+  binary_word n := b1.
+
+(* IN PROGRESS *)
