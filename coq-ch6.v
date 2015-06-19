@@ -1126,20 +1126,60 @@ Proof.
   apply le_0_n.
 Qed.
 
+(* TO BE PROVED:
+
 Theorem sieve_works:
   forall k p:nat,
   (prime p) /\ (p <= k) ->
   (prime_in_list p (prime_sieve k)).
-Proof.
-  intros k p H'.
-  destruct H' as [H1 H2].
-  induction k.
-  assert (p = 0) as H3.
-  apply nat_le_zero_is_zero; exact H2.
-  rewrite H3 in H1.
-  unfold prime in H1.
-  assert (2 = 0) as H4.
-  apply nat_le_zero_is_zero.
-  apply H1; assumption.
-  discriminate.
+
+*)
+
+(** Exercise 6.46 **)
+
+(* Given *)
+
+Inductive htree (A:Set) : nat->Set :=
+  | hleaf : A -> htree A 0
+  | hnode : 
+     forall n:nat,
+     A -> htree A n -> htree A n ->
+     htree A (S n).
   
+(* To do *)
+
+Lemma some_htree_inj:
+  forall (n:nat) (t1 t2 t3 t4:htree nat n),
+  hnode nat n 0 t1 t2 = hnode nat n 0 t3 t4 ->
+  t1 = t3.
+Proof.
+  intros n t1 t2 t3 t4 H.
+  change (let phi :=
+          fun (A:Set)(n:nat)(t:htree A (S n)) =>
+          match t with
+          | hnode A n t' _ => t'
+          | _ => t2
+          end in 
+          phi nat n (hnode nat n 0 t1 t2) =
+          phi nat n (hnode nat n 0 t3 t4)).
+  rewrite H.
+  reflexivity.
+Qed.
+
+(** Exercise 6.47 **)
+
+Fixpoint fixed_height_tree_builder (n:nat) :
+  (htree nat n) :=
+  match n return htree nat n with
+  | S p => hnode nat
+                 p
+                 (n + p)
+                 (fixed_height_tree_builder p)
+                 (fixed_height_tree_builder p)
+  | 0 => hleaf nat 0
+  end.
+
+Compute (fixed_height_tree_builder 3).
+Compute (fixed_height_tree_builder 0).
+Compute (fixed_height_tree_builder 1).
+
