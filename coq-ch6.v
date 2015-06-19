@@ -1183,3 +1183,32 @@ Compute (fixed_height_tree_builder 3).
 Compute (fixed_height_tree_builder 0).
 Compute (fixed_height_tree_builder 1).
 
+(** Exercise 6.48 **)
+
+Inductive binary_word : nat -> Set :=
+  | bw_x : binary_word 0
+  | bw_1 : 
+      forall n:nat,
+      binary_word n -> binary_word (S n)
+  | bw_0 : 
+      forall n:nat,
+      binary_word n -> binary_word (S n).
+Implicit Arguments bw_1 [n].
+Implicit Arguments bw_0 [n].
+
+Compute (bw_x).
+Compute (bw_1 bw_x).
+Compute (bw_1 (bw_0 (bw_1 bw_x))).
+
+Fixpoint binary_word_concat {n m:nat}
+  (b1:binary_word n) (b2:binary_word m) :=
+  match b1 in binary_word n
+  return binary_word (n+m) with
+  | bw_x => b2
+  | bw_1 _ t => bw_1 (binary_word_concat t b2)
+  | bw_0 _ t => bw_0 (binary_word_concat t b2)
+  end.
+
+Compute (binary_word_concat
+         (bw_1 bw_x)
+         (bw_1 (bw_0 (bw_1 bw_x)))).
