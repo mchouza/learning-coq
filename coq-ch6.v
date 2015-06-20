@@ -1215,8 +1215,34 @@ Compute (binary_word_concat
 
 (** Exercise 6.49 **)
 
+(*
 Fixpoint binary_word_or {n:nat}
   (b1:binary_word n) (b2:binary_word n):
-  binary_word n := b1.
+  binary_word n.
+*)
 
-(* IN PROGRESS *)
+(* TO BE DONE *)
+
+(** Exercise 6.50 **)
+
+(* TO BE DONE *)
+
+(** Exercise 6.51 **)
+
+Lemma ex_6_51_1:
+  forall x y:Empty_set, x = y.
+Proof.
+  intros x y.
+  elim x.
+Qed.
+
+Lemma ex_6_51_2:
+  forall x y:Empty_set, ~(x = y).
+Proof.
+  intros x y.
+  elim x.
+Qed.
+
+
+
+  
