@@ -143,3 +143,51 @@ Proof.
   exact H8.
   exact H6.
 Qed.
+
+Lemma not_lt_2_divides:
+  forall n m:nat,
+  n <> 1 -> n < 2 -> 0 < m -> ~divides n m.
+Proof.
+  unfold divides.
+  induction n.
+  intros m H1 H2 H3 H4.
+  destruct H4 as [p H4].
+  rewrite mult_0_r in H4.
+  rewrite H4 in H3.
+  apply lt_irrefl with (n := m).
+  exact H3.
+  intros m H1 H2 H3 H4.
+  unfold lt in H2.
+  assert (S n = 1) as H5.
+  apply f_equal.
+  symmetry.
+  apply le_n_0_eq.
+  do 2 apply le_S_n; exact H2.
+  contradiction.
+Qed.
+
+Lemma le_plus_minus:
+  forall n m:nat, n <= m -> m = n + (m - n).
+Proof.
+  intros n m H.
+  induction n.
+  simpl; rewrite <-minus_n_O; reflexivity.
+  rewrite plus_Sn_m.
+  rewrite plus_n_Sm.
+  rewrite minus_Sn_m.
+  simpl.
+  apply IHn.
+  apply le_Sn_le.
+  exact H.
+  exact H.
+Qed.
+
+Lemma lt_lt_or_eq:
+  forall n m:nat, n < S m -> n < m \/ n = m.
+Proof.
+  unfold lt.
+  intros n m H.
+  inversion H.
+  right; reflexivity.
+  left; exact H1.
+Qed.
