@@ -106,3 +106,40 @@ Proof.
   contradiction.
 Qed.
 
+(* Now I use the 'Arith' module, otherwise I
+   would get lost proving auxiliary lemmas *)
+Require Import Arith.
+
+Lemma not_divides_lt:
+  forall n m:nat,
+  0 < m -> m < n -> ~divides n m.
+Proof.
+  unfold divides.
+  intros n m H1 H2 H3.
+  destruct H3 as [p H3].
+  assert (0 < n) as H4.
+  apply lt_trans with (m := m); assumption.
+  assert (0 < p) as H5.
+  assert (0 <> p) as H6.
+  intro H7.
+  rewrite <-H7 in H3.
+  simpl in H3.
+  rewrite <-H3 in H1.
+  apply lt_irrefl with (n:=0); exact H1.
+  apply neq_0_lt; exact H6.
+  assert (m * p < n * p) as H6.
+  apply mult_lt_compat_r with (n := m).
+  exact H2.
+  exact H5.
+  rewrite mult_comm in H3.
+  rewrite H3 in H6.
+  assert (1 <= p) as H7.
+  apply H5.
+  assert (1 * m <= p * m) as H8.
+  apply mult_le_compat_r; exact H7.
+  rewrite mult_1_l in H8.
+  rewrite mult_comm in H8.
+  apply le_not_lt with (n := m) (m := m * p).
+  exact H8.
+  exact H6.
+Qed.
