@@ -150,3 +150,106 @@ Proof.
   simpl.
   reflexivity.
 Qed.
+
+(** Exercise 8.2 **)
+
+Inductive split_last (A:Type):
+  list A -> list A -> A -> Prop :=
+  | split_last_s: 
+      forall a:A, 
+      split_last A (a :: nil) nil a
+  | split_last_i:
+      forall (a b:A) (l l':list A),
+      split_last A l l' a ->
+      split_last A (b :: l) (b :: l') a.
+
+Implicit Arguments split_last [A].
+
+Lemma sl_ex_1: split_last (3 :: nil) nil 3.
+Proof.
+  constructor.
+Qed.
+
+Lemma sl_ex_2: 
+  split_last (3 :: 4 :: nil) (3 :: nil) 4.
+Proof.
+  repeat constructor.
+Qed.
+
+Lemma sl_ex_3: ~split_last nil nil 5.
+Proof.
+  intro H.
+  inversion H.
+Qed.
+
+Lemma sl_ex_4: 
+  ~split_last (3 :: 4 :: nil) (3 :: nil) 5.
+Proof.
+  intro H.
+  inversion H.
+  inversion H4.
+Qed.
+
+Lemma sl_ex_5: 
+  ~split_last (3 :: 4 :: nil) (2 :: nil) 4.
+Proof.
+  intro H.
+  inversion H.
+Qed.
+
+Inductive palindrome (A:Type): list A -> Prop :=
+  | palindrome_e: palindrome A nil
+  | palindrome_s: 
+      forall a:A, palindrome A (a :: nil)
+  | palindrome_i:
+      forall (a:A) (l l':list A),
+      palindrome A l /\ split_last l' l a ->
+      palindrome A (a :: l').
+
+
+Implicit Arguments palindrome [A].
+
+Lemma pal_ex_1: palindrome (A := nat) nil.
+Proof.
+  constructor.
+Qed.
+
+Lemma pal_ex_2: palindrome (3 :: nil).
+Proof.
+  constructor.
+Qed.
+
+Lemma pal_ex_3: palindrome (4 :: 4 :: nil).
+Proof.
+  apply palindrome_i 
+    with (l' := 4 :: nil) (l := nil).
+  split; repeat constructor.
+Qed.
+
+Lemma pal_ex_4:
+ palindrome (4 :: 6 :: 5 :: 6:: 4 :: nil).
+Proof.
+  apply palindrome_i 
+    with (l' := 6 :: 5 :: 6:: 4 :: nil)
+         (l := 6 :: 5 :: 6:: nil)
+         (a := 4).
+  split.
+  apply palindrome_i
+    with (l' := 5 :: 6 :: nil) 
+         (l := 5 :: nil)
+         (a := 6).
+  split; repeat constructor.
+  repeat constructor.
+Qed.
+
+Lemma pal_ex_5: ~palindrome (4 :: 3 :: nil).
+Proof.
+  intro H.
+  inversion H.
+  destruct H1 as [_ H1].
+  inversion H1.
+  inversion H7.
+Qed.
+
+Lemma pal_ex_6:
+ ~palindrome (4 :: 6 :: 5 :: 7:: 4 :: nil).
