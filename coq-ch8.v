@@ -277,49 +277,26 @@ Proof.
   exact H4.
 Qed.
 
-Lemma split_last_unique:
-  forall (A:Type) (a b:A) (l1 l2 l3:list A),
-  split_last l1 l2 a /\ split_last l1 l3 b ->
-  a = b /\ l2 = l3.
-Proof.
-  intros A a b l1.
-  induction l1.
-  intros l2 l3 [H1 H2].
-  assert False.
-  apply no_split_nil with (l := l2) (a := a).
-  exact H1.
-  contradiction.
-  destruct l1.
-  intros l2 l3 [H1 H2].
-  inversion H1.
-  inversion H2.
-  rewrite <-H7, <-H4.
-  split; reflexivity.
-  assert False.
-  apply no_split_nil with (l := l') (a := b).
-  exact H8.
-  contradiction.
-  assert False.
-  apply no_split_nil with (l := l') (a := a).
-  exact H5.
-  contradiction.
-  intros l2 l3 [H1 H2].
-  destruct l2.
-  assert False.
-  apply no_nil_when_splitting_big_lists
-    with (a := a0) (b := a1) (l := l1) (c := a).
-  exact H1.
-  contradiction.
-  destruct l3.
-  assert False.
-  apply no_nil_when_splitting_big_lists
-    with (a := a0) (b := a1) (l := l1) (c := b).
-  exact H2.
-  contradiction.
-  apply IHl1.
-  (* PROOF IN PROGRESS *)
-
 Lemma pal_ex_6:
  ~palindrome (4 :: 6 :: 5 :: 7:: 4 :: nil).
-  
-  
+Proof.
+  intro H1.
+  inversion H1.
+  clear H H2 a l'.
+  destruct H0 as [H2 H3].
+  inversion H3.
+  inversion H6.
+  inversion H11.
+  inversion H16.
+  rewrite <-H8, <-H13, <-H17 in H0.
+  rewrite <-H0 in H2.
+  clear - H2.
+  inversion H2.
+  destruct H0 as [H3 H4].
+  inversion H4.
+  inversion H8.
+  apply no_split_nil with (l := l'1) (a := 6).
+  assumption.
+  apply no_split_nil with (l := l'2) (a := 4).
+  assumption.
+Qed.
