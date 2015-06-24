@@ -300,3 +300,110 @@ Proof.
   apply no_split_nil with (l := l'2) (a := 4).
   assumption.
 Qed.
+
+(** Exercise 8.3 **)
+
+(* TO BE DONE *)
+
+(** Exercise 8.4 **)
+
+Inductive transp_two (A:Type) : 
+  list A -> list A -> Prop :=
+  | transp_two_f:
+    forall (a b:A) (l:list A),
+    transp_two A (a :: b :: l) (b :: a :: l)
+  | transp_two_i:
+    forall (a:A) (l l':list A),
+    transp_two A l l' ->
+    transp_two A (a :: l) (a :: l').
+
+Implicit Arguments transp_two [A].
+
+Lemma transp_two_ex1:
+  ~transp_two (1 :: 2 :: nil) (1 :: 2 :: nil).
+Proof.
+  intro H.
+  inversion H.
+  inversion H1.
+  inversion H5.
+Qed.
+
+Lemma transp_two_ex2:
+  transp_two (1 :: 2 :: nil) (2 :: 1 :: nil).
+Proof.
+  constructor.
+Qed.
+
+Lemma transp_two_ex3:
+  ~transp_two (1 :: 2 :: 3 :: nil)
+              (3 :: 1 :: 2 :: nil).
+Proof.
+  intro H.
+  inversion H.
+Qed.
+
+Lemma transp_two_ex4:
+  transp_two (1 :: 2 :: 3 :: nil)
+             (1 :: 3 :: 2 :: nil).
+Proof.
+  repeat constructor.
+Qed.
+
+Lemma transp_two_ex5:
+  ~transp_two (5 :: 1 :: 2 :: 3 :: nil)
+              (1 :: 5 :: 3 :: 2 :: nil).
+Proof.
+  intro H.
+  inversion H.
+Qed.
+
+Lemma transp_two_ex6:
+  transp_two (5 :: 1 :: 2 :: 3 :: nil)
+             (1 :: 5 :: 2 :: 3 :: nil).
+Proof.
+  repeat constructor.
+Qed.
+
+Inductive permuted (A:Type) :
+  list A -> list A -> Prop :=
+  | permuted_t:
+    forall (l l':list A),
+    transp_two l l' -> permuted A l l'
+  | permuted_i:
+    forall (l l' l'':list A),
+    permuted A l l' -> permuted A l' l'' ->
+    permuted A l l''.
+
+Implicit Arguments permuted [A].
+
+Lemma permuted_ex1:
+  permuted (1 :: 2 :: nil) (1 :: 2 :: nil).
+Proof.
+  assert (transp_two (1 :: 2 :: nil)
+                     (2 :: 1 :: nil)) as H1.
+  repeat constructor.
+  assert (transp_two (2 :: 1 :: nil)
+                     (1 :: 2 :: nil)) as H2.
+  repeat constructor.
+  apply permuted_i
+    with (l := (1 :: 2 :: nil))
+         (l' := (2 :: 1 :: nil)).
+  constructor; assumption.
+  constructor; assumption.
+Qed.
+
+Lemma permuted_ex2:
+  ~permuted (2 :: 2 :: nil) (1 :: 2 :: nil).
+Proof.
+  intro H.
+  inversion H.
+  inversion H0.
+  inversion H0.
+  inversion H1.
+  inversion H4.
+  rewrite <-H10 in H7.
+  clear - H7.
+  inversion H7.
+  inversion H13.
+  inversion H17.
+  (* PROOF IN PROGRESS *)
