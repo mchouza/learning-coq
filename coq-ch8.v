@@ -251,5 +251,75 @@ Proof.
   inversion H7.
 Qed.
 
+Lemma no_split_nil:
+  forall (A:Type) (a:A) (l:list A),
+  ~split_last nil l a.
+Proof.
+  intros A a l H.
+  inversion H.
+Qed.
+
+Lemma no_nil_when_splitting_big_lists:
+  forall (A:Type) (a b c:A) (l:list A),
+  ~split_last (a :: b :: l) nil c.
+Proof.
+  intros A a b c l H.
+  inversion H.
+Qed.
+
+Lemma split_1st_doesnt_matter:
+  forall (A:Type) (a b c:A) (l l':list A),
+  split_last (a :: b :: l) (a :: l') c ->
+  split_last (b :: l) l' c.
+Proof.
+  intros A a b c l l' H.
+  inversion H.
+  exact H4.
+Qed.
+
+Lemma split_last_unique:
+  forall (A:Type) (a b:A) (l1 l2 l3:list A),
+  split_last l1 l2 a /\ split_last l1 l3 b ->
+  a = b /\ l2 = l3.
+Proof.
+  intros A a b l1.
+  induction l1.
+  intros l2 l3 [H1 H2].
+  assert False.
+  apply no_split_nil with (l := l2) (a := a).
+  exact H1.
+  contradiction.
+  destruct l1.
+  intros l2 l3 [H1 H2].
+  inversion H1.
+  inversion H2.
+  rewrite <-H7, <-H4.
+  split; reflexivity.
+  assert False.
+  apply no_split_nil with (l := l') (a := b).
+  exact H8.
+  contradiction.
+  assert False.
+  apply no_split_nil with (l := l') (a := a).
+  exact H5.
+  contradiction.
+  intros l2 l3 [H1 H2].
+  destruct l2.
+  assert False.
+  apply no_nil_when_splitting_big_lists
+    with (a := a0) (b := a1) (l := l1) (c := a).
+  exact H1.
+  contradiction.
+  destruct l3.
+  assert False.
+  apply no_nil_when_splitting_big_lists
+    with (a := a0) (b := a1) (l := l1) (c := b).
+  exact H2.
+  contradiction.
+  apply IHl1.
+  (* PROOF IN PROGRESS *)
+
 Lemma pal_ex_6:
  ~palindrome (4 :: 6 :: 5 :: 7:: 4 :: nil).
+  
+  
