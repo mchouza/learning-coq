@@ -686,3 +686,49 @@ Proof.
   simpl; apply wp_e.
   simpl; apply wp_o_tail_c; assumption.
 Qed.
+
+(** Exercise 8.8 **)
+
+Require Import JMeq.
+
+Lemma ex_8_8:
+  forall x y z:nat, JMeq (x+(y+z)) ((x+y)+z).
+  intros x y z.
+  rewrite plus_assoc.
+  apply JMeq_refl.
+Qed.
+
+(** Exercise 8.9 **)
+
+(* Given *)
+
+Inductive even: nat->Prop :=
+  | O_even: even 0
+  | plus_2_even: 
+      forall n:nat, even n -> even (S (S n)).
+
+(* To do *)
+
+Lemma ex_8_9:
+  forall n:nat, 
+  even n -> exists m:nat, n = m + m.
+Proof.
+  intros n H.
+  induction H.
+  exists 0; auto.
+  destruct IHeven as [m IH].
+  exists (S m); rewrite <-plus_n_Sm; simpl.
+  repeat apply f_equal; assumption.
+Qed.
+
+(** Exercise 8.10 **)
+
+Lemma ex_8_10:
+  forall n:nat, even (n + n).
+Proof.
+  intros n.
+  induction n.
+  simpl; constructor.
+  rewrite <-plus_n_Sm; simpl.
+  constructor; assumption.
+Qed.
