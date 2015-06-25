@@ -527,3 +527,43 @@ Proof.
   apply permuted_i with (l' := l');
     assumption.
 Qed.
+
+(** Exercise 8.5 **)
+
+(* Given *)
+
+Inductive par : Set := open | close.
+
+(* To do *)
+
+Inductive wp: list par -> Prop :=
+  | wp_e: wp nil
+  | wp_p: forall l:list par,
+      wp l -> wp (open :: (l ++ (close :: nil)))
+  | wp_c: forall (l l':list par),
+      wp l -> wp l' -> wp (l ++ l').
+
+Lemma wp_ex1: wp nil.
+Proof.
+  constructor.
+Qed.
+
+Lemma wp_even_len: 
+  forall l:list par, 
+  wp l -> exists p:nat, length l = p + p.
+Proof.
+  intros l H.
+  induction H.
+  exists 0; auto.
+  destruct IHwp as [p H2].
+  exists (S(p)); simpl.
+  rewrite app_length, H2; simpl.
+  rewrite <-plus_n_Sm, <-plus_n_O.
+  rewrite <-plus_n_Sm; reflexivity.
+  destruct IHwp1 as [p H1].
+  destruct IHwp2 as [p' H2].
+  exists (p + p').
+  rewrite app_length, H1, H2.
+  (* IN PROGRESS *)
+
+Lemma wp_ex2: ~wp (open :: nil).
