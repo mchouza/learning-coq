@@ -564,6 +564,72 @@ Proof.
   destruct IHwp2 as [p' H2].
   exists (p + p').
   rewrite app_length, H1, H2.
-  (* IN PROGRESS *)
+  repeat rewrite plus_assoc.
+  rewrite plus_comm with (n := p + p) (m := p').
+  rewrite plus_comm with (n := p) (m := p').
+  repeat rewrite plus_assoc; reflexivity.
+Qed.
 
 Lemma wp_ex2: ~wp (open :: nil).
+Proof.
+  intros H1.
+  cut (exists p, length (open :: nil) = p + p).
+  simpl.
+  intros [p H2].
+  induction p.
+  discriminate.
+  rewrite <-plus_n_Sm in H2.
+  simpl in H2.
+  assert (0 = S(p + p)) as H3.
+  apply eq_add_S; assumption.
+  discriminate H3.
+  apply wp_even_len; assumption.
+Qed.
+
+Lemma wp_oc: wp (cons open (cons close nil)).
+Proof.
+  apply wp_p with (l := nil); constructor.
+Qed.
+
+Lemma cons_as_list_cat:
+  forall (A:Type) (a:A) (l:list A),
+  a :: l = (a :: nil) ++ l.
+Proof.
+  intros A a l.
+  auto.
+Qed.
+
+Lemma wp_o_head_c:
+  forall l1 l2:list par,
+  wp l1 -> wp l2 ->
+  wp (cons open (app l1 (cons close l2))).
+Proof.
+  intros l1 l2 H1 H2.
+  assert (close :: l2 = (close :: nil) ++ l2)
+    as H3.
+  auto.
+  rewrite H3.
+  rewrite app_assoc; auto.
+  apply wp_c
+    with (l := open :: (l1 ++ close :: nil))
+         (l' := l2).
+  rewrite app_comm_cons.
+  apply wp_p.
+  exact H1.
+  exact H2.
+Qed.
+
+Lemma wp_o_tail_c:
+  forall (l1 l2:list par),
+  wp l1 -> wp l2 ->
+  wp (app l1 
+          (cons open
+                (app l2 (cons close nil)))).
+Proof.
+  intros l1 l2 H1 H2.
+  rewrite app_comm_cons.
+  apply wp_c.
+  exact H1.
+  apply wp_p.
+  exact H2.
+Qed.
