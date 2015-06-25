@@ -392,18 +392,138 @@ Proof.
   constructor; assumption.
 Qed.
 
+Fixpoint list_count_f
+  (A:Type) (l:list A) (f:A->bool) : nat :=
+  match l with
+  | nil => 0
+  | h :: t =>
+      if (f h)
+      then S (list_count_f A t f)
+      else list_count_f A t f
+  end.
+
+Implicit Arguments list_count_f [A].
+
+Lemma transp_two_doesnt_change_f_counts:
+  forall (A:Type) (l l':list A) (f:A->bool),
+  transp_two l l' ->
+  list_count_f l f = list_count_f l' f.
+Proof.
+  intros A l l' f H.
+  induction H.
+  simpl.
+  case (f a), (f b); auto.
+  simpl.
+  case (f a); auto.
+Qed.
+
+Implicit Arguments
+  transp_two_doesnt_change_f_counts [A].
+
+Lemma permuted_doesnt_change_f_counts:
+  forall (A:Type) (l l':list A) (f:A->bool),
+  permuted l l' ->
+  list_count_f l f = list_count_f l' f.
+Proof.
+  intros A l l' f H.
+  induction H.
+  apply transp_two_doesnt_change_f_counts;
+    assumption.
+  apply eq_trans
+    with (y := list_count_f l' f);
+    assumption.
+Qed.
+
 Lemma permuted_ex2:
   ~permuted (2 :: 2 :: nil) (1 :: 2 :: nil).
 Proof.
   intro H.
+  cut (0 = 1).
+  apply O_S.
+  cut (list_count_f (2 :: 2 :: nil)
+                    (beq_nat 1) =
+       list_count_f (1 :: 2 :: nil)
+                    (beq_nat 1)).
+  simpl; auto.
+  apply permuted_doesnt_change_f_counts; 
+    assumption.
+Qed.
+
+Lemma permuted_ex3:
+  ~permuted (1 :: 2 :: nil) 
+            (1 :: 2 :: 3 :: nil).
+Proof.
+  intro H.
+  cut (2 = 3).
+  apply n_Sn.
+  cut (list_count_f (1 :: 2 :: nil)
+                    (fun _ => true) =
+       list_count_f (1 :: 2 :: 3 ::nil)
+                    (fun _ => true)).
+  simpl; auto.
+  apply permuted_doesnt_change_f_counts; 
+    assumption.
+Qed.
+
+Lemma permuted_refl:
+  forall (A:Type) (l:list A),
+  length l >= 2 -> permuted l l.
+Proof.
+  intros A l H.
+  induction l.
   inversion H.
-  inversion H0.
-  inversion H0.
+  induction l.
+  inversion H.
   inversion H1.
-  inversion H4.
-  rewrite <-H10 in H7.
-  clear - H7.
-  inversion H7.
-  inversion H13.
-  inversion H17.
-  (* PROOF IN PROGRESS *)
+  clear.
+  apply permuted_i 
+    with (l' := (a0 :: a :: l)).
+  repeat constructor.
+  repeat constructor.
+Qed.
+
+Lemma transp_two_symm:
+  forall (A:Type) (l l':list A),
+  transp_two l l' <-> transp_two l' l.
+Proof.
+  intros A l l'.
+  split.
+  intros H.
+  induction H.
+  constructor.
+  constructor; assumption.
+  intros H.
+  induction H.
+  constructor.
+  constructor; assumption.
+Qed.
+
+Lemma permuted_symm:
+  forall (A:Type) (l l':list A),
+  permuted l l' <-> permuted l' l.
+Proof.
+  intros A l l'.
+  split.
+  intros H.
+  induction H.
+  constructor.
+  apply transp_two_symm; assumption.
+  apply permuted_i with (l' := l');
+    assumption.
+  intros H.
+  induction H.
+  constructor.
+  apply transp_two_symm; assumption.
+  apply permuted_i with (l' := l');
+    assumption.
+Qed.
+
+Lemma permuted_trans:
+  forall (A:Type) (l l' l'':list A),
+  permuted l l' -> permuted l' l'' ->
+  permuted l l''.  
+Proof.
+  intros A l l' l'' H1 H2.
+  apply permuted_i with (l' := l');
+    assumption.
+Qed.
