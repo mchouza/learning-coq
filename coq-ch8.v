@@ -633,3 +633,56 @@ Proof.
   apply wp_p.
   exact H2.
 Qed.
+
+(** Exercise 8.6 **)
+
+(* Given *)
+
+Inductive bin : Set := 
+| L : bin
+| N : bin -> bin -> bin.
+
+Fixpoint bin_to_string (t:bin) : list par :=
+  match t with
+  | L => nil
+  | N u v =>
+      cons open
+           (app (bin_to_string u)
+                (cons close (bin_to_string v)))
+  end.
+
+(* To do *)
+
+Lemma ex_8_6: 
+  forall t:bin, wp (bin_to_string t).
+Proof.
+  intros t.
+  induction t.
+  simpl; apply wp_e.
+  simpl; apply wp_o_head_c; assumption.
+Qed.
+
+(** Exercise 8.7 **)
+
+(* Given *)
+
+Fixpoint bin_to_string' (t:bin) : list par :=
+  match t with
+  | L => nil
+  | N u v =>
+      app (bin_to_string' u)
+          (cons open
+                (app (bin_to_string' v)
+                     (cons close nil)))
+  end.
+
+(* To do *)
+
+Lemma ex_8_7:
+  forall t:bin, wp (bin_to_string' t).
+Proof.
+  intros t.
+  induction t.
+  simpl; apply wp_e.
+  simpl; apply wp_o_tail_c; assumption.
+Qed.
