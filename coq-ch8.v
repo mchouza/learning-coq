@@ -786,3 +786,44 @@ Proof.
   intros r H3 P H5 H6.
   apply H6, H3; assumption.
 Qed.
+
+(** Exercise 8.14 **)
+
+(* Given *)
+
+Inductive le_diff (n m:nat) : Prop :=
+  le_d: forall x:nat, x + n = m -> le_diff n m.
+
+(* To do *)
+
+Theorem le_equiv_le_diff:
+  forall n m:nat, n <= m <-> le_diff n m.
+Proof.
+  intros n m.
+  split.
+  intros H1.
+  induction H1.
+  apply le_d with (x := 0); auto.
+  destruct IHle as [x H2].
+  apply le_d with (x := S x).
+  simpl; rewrite H2; auto.
+  intros H1.
+  destruct H1 as [x H1].
+  generalize m H1.
+  clear H1 m.
+  induction x.
+  intros m H1.
+  simpl in H1; rewrite H1; apply le_n.
+  intros m H1.
+  assert (m = S (pred m)) as H2.
+  destruct m.
+  simpl in H1; discriminate.
+  simpl; auto.
+  rewrite H2.
+  apply le_S.
+  apply IHx with (m := pred m).
+  apply eq_add_S.
+  rewrite <-H2.
+  rewrite <-plus_Sn_m.
+  exact H1.
+Qed.
