@@ -732,3 +732,57 @@ Proof.
   rewrite <-plus_n_Sm; simpl.
   constructor; assumption.
 Qed.
+
+(** Exercise 8.11 **)
+
+Theorem lt_le:
+  forall n p:nat, n < p -> n <= p.
+Proof.
+  unfold lt.
+  intros n p H.
+  apply le_Sn_le; assumption.
+Qed.
+
+(** Exercise 8.12 **)
+
+(* Given *)
+
+Definition my_le (n p:nat) :=
+  forall P:nat -> Prop,
+  P n -> (forall q:nat, P q -> P (S q)) -> P p.
+
+(* To do *)
+
+Lemma le_my_le:
+  forall n p:nat, n <= p -> my_le n p.
+Proof.
+  unfold my_le.
+  intros n p H.
+  induction H.
+  intros P H1 H2; exact H1.
+  intros P H1 H2.
+  apply H2, IHle; assumption.
+Qed.
+
+(** Exercise 8.13 **)
+
+Lemma le_trans':
+  forall n p q:nat, n <= p -> p <= q -> n <= q.
+Proof.
+  intros n p q H1 H2.
+  induction H2.
+  assumption.
+  apply le_S; assumption.
+Qed.
+
+Lemma my_le_trans:
+  forall n p q:nat, 
+  my_le n p -> my_le p q -> my_le n q.
+Proof.
+  unfold my_le.
+  intros n p q H1 H2.
+  apply H2.
+  assumption.
+  intros r H3 P H5 H6.
+  apply H6, H3; assumption.
+Qed.
