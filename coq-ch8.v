@@ -827,3 +827,78 @@ Proof.
   rewrite <-plus_Sn_m.
   exact H1.
 Qed.
+
+(** Exercise 8.15 **)
+
+(* TO BE DONE *)
+
+(** Exercise 8.16 **)
+
+(* TO BE DONE *)
+
+(** Exercise 8.17 **)
+
+(* TO BE DONE *)
+
+(** Exercise 8.18 **)
+
+(* TO BE DONE *)
+
+(** Exercise 8.19 **)
+
+Inductive wp': list par -> Prop :=
+  | wp'_nil: wp' nil
+  | wp'_cons: 
+      forall (l1 l2:list par),
+      wp' l1 -> wp' l2 ->
+      wp' (cons open
+                (app l1
+                     (cons close l2))).
+
+Lemma wp_has_first_par_comp:
+  forall l: list par, 
+  l <> nil -> wp l ->
+  exists l1:list par,
+  exists l2:list par,
+  l = open :: l1 ++ close :: l2 /\ 
+  wp l1 /\ wp l2.
+Proof.
+  intros l H1 H2.
+  induction H2.
+  apply False_ind, H1; reflexivity.
+  exists l.
+  exists nil.
+  split.
+  reflexivity.
+  split.
+  assumption.
+  constructor.
+  induction l.
+  simpl.
+  apply IHwp2.
+  apply H1.
+  assert (exists l1 : list par,
+          exists l2 : list par,
+          a :: l =
+          open :: l1 ++
+          close :: l2 /\
+          wp l1 /\
+          wp l2) as H3.
+  apply IHwp1.
+  discriminate.
+  destruct H3 as [l3 [l4 [H3 [H4 H5]]]].
+  assert (wp (l4 ++ l')) as H6.
+  apply wp_c; assumption.
+  exists l3.
+  exists (l4 ++ l').
+  rewrite H3.
+  split.
+  repeat rewrite app_comm_cons.
+  repeat rewrite app_assoc.
+  reflexivity.
+  split; assumption.
+Qed.
+
+Lemma wp_equiv_wp':
+  forall l:list par, wp l <-> wp' l.
+(* IN PROGRESS *)
