@@ -899,6 +899,144 @@ Proof.
   split; assumption.
 Qed.
 
+Lemma a_le_sum:
+  forall a b:nat, a <= a + b.
+Proof.
+  intros a b.
+  induction b.
+  rewrite <-plus_n_O; apply le_n.
+  rewrite <-plus_n_Sm; apply le_S; exact IHb.
+Qed.
+
+Lemma sum_le: 
+  forall a b c:nat, 
+  a + b <= c -> (a <= c) /\ (b <= c).
+Proof.
+  intros a b c H.
+  cut ((a <= a + b) /\ (b <= a + b)).
+  intros [H1 H2].
+  split;
+    apply le_trans
+      with (m := a + b) (p := c);
+    assumption.
+  split.
+  apply a_le_sum.
+  rewrite plus_comm.
+  apply a_le_sum with (a := b).
+Qed.
+
 Lemma wp_equiv_wp':
   forall l:list par, wp l <-> wp' l.
-(* IN PROGRESS *)
+  cut (forall (n:nat) (l:list par),
+       (length l <= n -> (wp l <-> wp' l))).
+  intros H l.
+  apply H with (n := S (length l)).
+  apply le_S, le_n.
+  intros n.
+  induction n.
+  intros l H.
+  induction l.
+  split; intros; constructor.
+  simpl in H.
+  apply False_ind; 
+    apply le_Sn_0 with (n := length l);
+    assumption.
+  intros l H.
+  split.
+  intros H2.
+  induction H2.
+  constructor.
+  apply wp'_cons.
+  apply IHwp.
+  cut (length (open :: l ++ close :: nil) =
+       S(S(length l))).
+  intros H3.
+  do 2 apply le_S_n.
+  rewrite <-H3.
+  do 2 apply le_S.
+  apply H.
+  simpl.
+  rewrite app_length; simpl.
+  rewrite <-plus_n_Sm, <-plus_n_O.
+  do 2 apply f_equal; reflexivity.
+  constructor.
+  cut (l ++ l' = nil \/
+       (exists l1:list par,
+        exists l2:list par,
+        l ++ l' = open :: l1 ++ close :: l2 /\ 
+        wp l1 /\ wp l2)).
+  intros [H4 | H3].
+  rewrite H4; constructor.
+  destruct H3 as [l1 [l2 [H3 [H4 H5]]]].
+  rewrite H3.
+  cut (length l1 <= n /\ length l2 <= n).
+  intros [H6 H7].
+  apply wp'_cons.
+  apply IHn; [exact H6 | exact H4].
+  apply IHn; [exact H7 | exact H5].
+  cut (length(open :: l1 ++ close :: l2) =
+       S(S(length l1 + length l2))).
+  intros H6.
+  rewrite H3, H6 in H.
+  cut (length l1 + length l2 <= n).
+  intros H7.
+  apply sum_le; exact H7.
+  do 2 apply le_S_n.
+  apply le_S; exact H.
+  simpl.
+  apply f_equal.
+  rewrite app_length.
+  simpl.
+  rewrite <-plus_n_Sm.
+  reflexivity.
+  cut ((l ++ l' = nil) \/ (l ++ l' <> nil)).
+  intros [H3 | H4].
+  left; exact H3.
+  right.
+  apply wp_has_first_par_comp.
+  exact H4.
+  apply wp_c; assumption.
+  case (l ++ l').
+  left; reflexivity.
+  intros p l0.
+  right; discriminate.
+  intros H2.
+  induction H2.
+  constructor.
+  cut ((length l1 <= n) /\ (length l2 <= n)).
+  intros [H3 H4].
+  cut (open :: l1 ++ close :: l2 =
+       (open :: l1 ++ close :: nil) ++ l2).
+  intros H5.
+  rewrite H5.
+  apply wp_c.
+  apply wp_p.
+  apply IHn; [exact H3 | exact H2_].
+  apply IHn; [exact H4 | exact H2_0].
+  cut (forall (p:par) (l:list par),
+       p :: l = (p :: nil) ++ l).
+  intros H5. 
+  rewrite H5 with (p := close) (l := l2).
+  rewrite H5
+    with (p := open) 
+         (l := l1 ++ (close :: nil) ++ l2).
+  rewrite H5
+    with (p := open) 
+         (l := l1 ++ (close :: nil)).
+  repeat rewrite app_assoc.
+  reflexivity.
+  intros p l; simpl; reflexivity.
+  cut (length (open :: l1 ++ close :: l2) =
+       S(S(length l1 + length l2))).
+  intros H3.
+  apply sum_le.
+  do 2 apply le_S_n.
+  rewrite <-H3.
+  apply le_S; exact H.
+  simpl; apply f_equal.
+  rewrite app_length; simpl.
+  rewrite plus_n_Sm; reflexivity.
+Qed.
+
+(* A VERY BIG AND COMPLEX PROOF. IT CAN PROBABLY
+   BE IMPROVED A LOT... *)
