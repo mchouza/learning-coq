@@ -1313,7 +1313,22 @@ Proof.
   exact H2_0.
   rewrite Heql''.
   discriminate.
-  (* now we need to do the other direction *)
+  (* now we need to do the other direction,
+     it should be easier *)
   intros H2.
   induction H2.
-  
+  apply wp_e.
+  set (l1 ++ open :: l2 ++ close :: nil) as l.
+  cut (length l1 < length l /\
+       length l2 < length l /\
+       length nil (A := par) < length l).
+  intros [H3 [H4 _]].
+  apply wp_c;
+    [apply IHwp''1 | apply wp_p; apply IHwp''2];
+    apply lt_le_weak; 
+    apply lt_le_trans
+      with (m := length l) (p := S n);
+    assumption.
+  apply comp_len_ineq.
+  rewrite app_nil_r; reflexivity.
+Qed.
