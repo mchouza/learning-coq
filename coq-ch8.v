@@ -1040,3 +1040,280 @@ Qed.
 
 (* A VERY BIG AND COMPLEX PROOF. IT CAN PROBABLY
    BE IMPROVED A LOT... *)
+
+(** Exercise 8.20 **)
+
+(* Given *)
+
+Inductive wp'': list par -> Prop :=
+  | wp''_nil: wp'' nil
+  | wp''_cons:
+      forall l1 l2:list par,
+      wp'' l1 -> wp'' l2 ->
+      wp'' (app l1
+                (cons open
+                      (app l2
+                           (cons close nil)))).
+
+Lemma wp_has_last_par_comp:
+  forall l: list par, 
+  l <> nil -> wp l ->
+  exists l1:list par,
+  exists l2:list par,
+  l = l1 ++ open :: l2 ++ close :: nil /\
+  wp l1 /\ wp l2.
+Proof.
+  intros l H1 H2.
+  induction H2.
+  apply False_ind, H1; reflexivity.
+  exists nil.
+  exists l.
+  split; [auto | split; auto]; apply wp_e.
+  induction l'.
+  rewrite app_nil_r.
+  apply IHwp1.
+  rewrite app_nil_r in H1; exact H1.
+  remember (a :: l') as l''.
+  cut (exists l1:list par,
+       exists l2:list par,
+       (l'' =
+        l1 ++ open :: l2 ++ close :: nil) /\
+       wp l1 /\ wp l2).
+  intros [l1 [l2 [H3 [H4 H5]]]].
+  exists (l ++ l1).
+  exists l2.
+  split.
+  rewrite H3.
+  apply app_assoc.
+  split; [apply wp_c; assumption | assumption].
+  apply IHwp2.
+  rewrite Heql''; discriminate.
+Qed.
+
+Lemma len_le_zero_is_nil:
+  forall l:list par, length l <= 0 <-> l = nil.
+Proof.
+  intros l.
+  case l.
+  split; intros;
+    [reflexivity | simpl; apply le_n].
+  simpl; split; intros.
+  apply False_ind; 
+    apply le_Sn_O with (n := length l0);
+    assumption.
+  discriminate.
+Qed.
+
+Lemma cons_lens_equiv:
+  forall l l1 l2:list par,
+  l = l1 ++ (open :: l2) ++ close :: nil ->
+  length l = S(S(length l1 + length l2)).
+Proof.
+  intros l l1 l2 H.
+  rewrite H.
+  repeat rewrite app_length; simpl.
+  repeat rewrite <-plus_n_Sm.
+  rewrite <-plus_n_O.
+  reflexivity.
+Qed.
+
+Lemma comp_len_val:
+  forall l l1 l2 l3:list par,
+  l = l1 ++ (open :: nil) ++ l2 ++
+      (close :: nil) ++ l3 ->
+  length l = 
+  S(S(length l1 + length l2 + length l3)).
+Proof.
+  intros l l1 l2 l3 H.
+  rewrite H.
+  repeat rewrite app_length; simpl.
+  repeat rewrite <-plus_n_Sm.
+  repeat rewrite plus_assoc.
+  reflexivity.
+Qed.
+
+Lemma sum_3_le: 
+  forall n m p: nat, n <= n + m + p.
+Proof.
+  intros n m p.
+  cut (0 <= m + p).
+  intros H.
+  rewrite plus_n_O with (n := n) at 1.
+  rewrite <-plus_assoc.
+  apply plus_le_compat_l; exact H.
+  apply le_O_n.
+Qed.
+
+Lemma comp_len_ineq:
+  forall l l1 l2 l3:list par,
+  l = l1 ++ (open :: nil) ++ l2 ++
+      (close :: nil) ++ l3 ->
+  length l1 < length l /\
+  length l2 < length l /\
+  length l3 < length l.
+Proof.
+  intros l l1 l2 l3 H1.
+  cut (length l = 
+       S(S(length l1 + length l2 + length l3))).
+  intros H2.
+  rewrite H2; unfold lt.
+  split.
+  apply le_n_S, le_S.
+  apply sum_3_le.
+  split.
+  rewrite plus_comm with (n := length l1).
+  apply le_n_S, le_S.
+  apply sum_3_le.
+  rewrite plus_comm.
+  apply le_n_S, le_S.
+  rewrite plus_assoc.
+  apply sum_3_le.
+  apply comp_len_val; exact H1.
+Qed.
+
+Lemma le_drop:
+  forall n m p:nat, n + m <= p -> n <= p.
+Proof.
+  intros n m p H.
+  induction m.
+  rewrite plus_n_O with (n := n); exact H.
+  apply IHm, le_Sn_le.
+  rewrite plus_n_Sm; exact H.
+Qed.
+
+Lemma wp_equiv_wp'':
+  forall l:list par, wp l <-> wp'' l.
+Proof.
+  (* we need to get a stronger induction
+     hypothesis *)
+  cut (forall (n:nat) (l:list par),
+       (length l <= n -> (wp l <-> wp'' l))).
+  (* first we get the desired result from the
+     induction hypothesis *)
+  intros H l.
+  apply H with (n := length l); apply le_n.
+  intros n.
+  (* then we do the induction *)
+  induction n.
+  (* the nil case is very easy *)
+  intros l H.
+  cut (l = nil).
+  intros.
+  split; intros; rewrite H0; constructor.
+  apply len_le_zero_is_nil; assumption.
+  (* now we need to do the inductive step *)
+  intros l H1.
+  split.
+  intros H2.
+  (* we use structural induction *)
+  induction H2.
+  (* the nil case of wp is trivial *)
+  constructor.
+  (* we handle the single parenthesized
+     expression using a nil prefix *)
+  apply wp''_cons with (l1 := nil).
+  constructor.
+  (* now we just have to find a way to apply
+     the structural recursion *)
+  cut (length l <= S n).
+  exact IHwp.
+  cut (length (open :: l ++ close :: nil) =
+       S(S(length l))).
+  intros H3.
+  do 2 apply le_S_n.
+  rewrite <-H3.
+  do 2 apply le_S.
+  exact H1.
+  (* now it's just a question of relating the
+     list lengths *)
+  rewrite app_comm_cons.
+  rewrite app_length; simpl.
+  rewrite <-plus_n_Sm, <-plus_n_O.
+  reflexivity.
+  (* for the concatenation case, we use the fact
+     that, if l' is not nil, it should have
+     a well-parenthesized expression as a 
+     suffix *)
+  (* let's start by disposing of the nil case *)
+  induction l'.
+  rewrite app_nil_r.
+  apply IHwp1.
+  rewrite app_nil_r in H1.
+  exact H1.
+  remember (a :: l') as l''.
+  cut (l'' <> nil).
+  intros H3.
+  (* now we can assume that l'' is not nil *)
+  (* let's start with the fact that it ends with
+     a well-parenthesized expression *)
+  cut (exists l1:list par,
+       exists l2:list par,
+       l'' = l1 ++
+             open :: l2 ++
+             close :: nil /\
+             wp l1 /\ wp l2).
+  intros [l1 [l2 [H4 [H5 H6]]]].
+  rewrite H4.
+  rewrite app_assoc.
+  (* now it's ready to apply the constructor *)
+  apply wp''_cons.
+  (* we can only apply the inductive hypothesis
+     over the term lengths here *)
+  cut (length (l ++ l1) <= n).
+  intros H7.
+  apply IHn.
+  exact H7.
+  apply wp_c; assumption.
+  (* now it's boring length inequalities 
+     again... *)
+  cut (length (l ++ l1 ++ open :: l2 ++
+               close :: nil) <= S n).
+  intros H7.
+  repeat rewrite app_length in H7.
+  simpl in H7.
+  rewrite app_length; simpl.
+  repeat rewrite <-plus_n_Sm in H7.
+  assert (length l +
+          (length l1 +
+           length (l2 ++ close :: nil)) <= n)
+    as H8.
+  apply le_S_n; exact H7.
+  rewrite plus_assoc in H8.
+  apply le_drop 
+    with (m := length (l2 ++ close :: nil)).
+  exact H8.
+  rewrite H4 in H1.
+  exact H1.
+  (* now we need to do the same with the other
+     term *)
+  cut (length l2 <= n).
+  intros H7.
+  apply IHn.
+  exact H7.
+  exact H6.
+  cut (length l'' <= S n).
+  intros H7.
+  cut (length l'' =
+       S(S(length l1 + length l2))).
+  intros H8.
+  rewrite H8 in H7.
+  apply le_drop with (m := length l1).
+  rewrite plus_comm.
+  apply le_Sn_le, le_S_n; exact H7.
+  rewrite H4.
+  rewrite app_comm_cons.
+  repeat rewrite app_length; simpl.
+  repeat rewrite <-plus_n_Sm.
+  rewrite <-plus_n_O; reflexivity.
+  apply le_drop with (m := length l).
+  rewrite plus_comm.
+  rewrite <-app_length; exact H1.
+  apply wp_has_last_par_comp.
+  exact H3.
+  exact H2_0.
+  rewrite Heql''.
+  discriminate.
+  (* now we need to do the other direction *)
+  intros H2.
+  induction H2.
+  
