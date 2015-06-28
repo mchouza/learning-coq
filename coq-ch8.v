@@ -882,7 +882,129 @@ Qed.
 
 (** Exercise 8.18 **)
 
-(* TO BE DONE *)
+Section weird_induc_proof.
+
+  Variable P: nat -> Prop.
+  Variable f: nat -> nat.
+
+  Hypothesis f_strict_mono:
+    forall n p:nat, lt n p -> lt (f n) (f p).
+  Hypothesis f_0: lt 0 (f 0).
+
+  Hypothesis P0: P 0.
+  Hypothesis P_Sn_n: 
+    forall n:nat, P (S n) -> P n.
+  Hypothesis f_P: forall n:nat, P n -> P (f n).
+
+  Lemma sub_le_implies_equal:
+    forall n m:nat, 
+    n <= m /\ m - n = 0 -> n = m.
+  Proof.
+    intros n m [H1 H2].
+    rewrite plus_n_O, <-H2 at 1.
+    rewrite le_plus_minus_r;
+      [reflexivity | assumption].
+  Qed.
+
+  Lemma minus_minus_le:
+    forall n m:nat, n <= m -> n = m - (m - n).
+  Proof.
+    intros n m H1.
+    apply plus_minus.
+    rewrite plus_comm, <-le_plus_minus.
+    reflexivity.
+    assumption.
+  Qed.
+
+  Lemma lt_or_not_lt:
+    forall n m:nat, n < m \/ ~(n < m).
+  Proof.
+    intros n m.
+    cut (n < m \/ m <= n).
+    intros [H1 | H2].
+    left; exact H1.
+    right; apply le_not_lt; exact H2.
+    apply or_comm, le_or_lt.
+  Qed.
+
+  Lemma sub_succ_rel:
+    forall n m:nat,
+    S(m - S n) = m - n \/ m - S n = 0.
+  Proof.
+    intros n m.
+    assert (n < m -> S(m - S n) = m - n) as H1.
+    intros H1.
+    rewrite minus_Sn_m.
+    simpl; reflexivity.
+    apply H1.
+    assert (~(n < m) -> m - S n = 0) as H2.
+    intros H2.
+    apply not_le_minus_0; exact H2.
+    cut ((n < m) \/ ~(n < m)).
+    intros [H3 | H4].
+    left; apply H1; exact H3.
+    right; apply H2; exact H4.
+    apply lt_or_not_lt.
+  Qed.
+
+  Lemma rev_induc_le:
+    forall n m:nat,
+    (n <= m /\ P m) -> P n.
+  Proof.
+    intros n m [H1 H2].
+    cut (forall p:nat, P m -> P (m - p)).
+    intros H3.
+    rewrite minus_minus_le with (m := m).
+    apply H3 with (p := m - n); assumption.
+    assumption.
+    induction p.
+    intros H3.
+    rewrite <-minus_n_O; assumption.
+    cut (P(m - p)).
+    intros H3 H4.
+    cut (S(m - S p) = m - p \/ m - S p = 0).
+    intros [H5 | H6].
+    apply P_Sn_n.
+    rewrite H5; apply H3.
+    rewrite H6; apply P0.
+    apply sub_succ_rel.
+    apply IHp; apply H2.
+  Qed.
+
+  Lemma f_is_bigger:
+    forall p:nat, p < f p.
+  Proof.
+    induction p.
+    exact f_0.
+    cut (S p <= f p /\ f p < f (S p)).
+    intros [H1 H2].
+    apply le_lt_trans with (m := f p);
+      assumption.
+    split.
+    exact IHp.
+    apply f_strict_mono, lt_n_Sn.
+  Qed.
+
+  Lemma induc_hyp:
+    forall n:nat, P n -> P (S n).
+  Proof.
+    intros n H1.
+    cut (S n <= f n).
+    intros H2.
+    apply rev_induc_le with (m := f n); split.
+    assumption.
+    apply f_P; assumption.
+    apply f_is_bigger.
+  Qed.
+
+  Theorem weird_induc: forall n:nat, P n.
+  Proof.
+    induction n.
+    apply P0.
+    apply induc_hyp; exact IHn.
+  Qed.
+
+End weird_induc_proof.
 
 (** Exercise 8.19 **)
 
