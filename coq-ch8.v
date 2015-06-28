@@ -830,6 +830,46 @@ Qed.
 
 (** Exercise 8.15 **)
 
+(* Given *)
+
+Inductive le': nat -> nat -> Prop :=
+  | le'_0_p: forall p:nat, le' 0 p
+  | le'_Sn_Sp: 
+      forall n p:nat, 
+      le' n p -> le' (S n) (S p).
+
+(* To do *)
+
+Lemma le'_le_equiv:
+  forall n m: nat, le' n m <-> le n m.
+Proof.
+  intros n m.
+  split.
+  intros H.
+  induction H.
+  apply le_0_n.
+  apply le_n_S; assumption.
+  intros H1.
+  induction H1.
+  induction n.
+  constructor.
+  constructor; assumption.
+  cut (forall n m p:nat,
+       le' n m -> le' (n + p) (m + p)).
+  intros H2.
+  cut (S m = (S m) - n + n).
+  intros H3.
+  rewrite H3, <-plus_O_n at 1.
+  apply H2; constructor.
+  rewrite plus_comm.
+  apply le_plus_minus, le_S; assumption.
+  intros n' m' p H2.
+  induction p.
+  repeat rewrite <-plus_n_O; exact H2.
+  repeat rewrite <-plus_n_Sm.
+  constructor; exact IHp.
+Qed.
+
 (* TO BE DONE *)
 
 (** Exercise 8.16 **)
