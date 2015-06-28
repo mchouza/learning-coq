@@ -1494,3 +1494,32 @@ Proof.
   apply comp_len_ineq.
   rewrite app_nil_r; reflexivity.
 Qed.
+
+(** Exercise 8.21 **)
+
+(* Given *)
+
+Fixpoint recognize (n:nat) (l:list par)
+  {struct l}: bool :=
+  match l with
+  | nil => match n with
+           | 0 => true
+           | _ => false
+           end
+  | cons open l' => recognize (S n) l'
+  | cons close l' => match n with
+                     | 0 => false
+                     | S n' => recognize n' l'
+                     end
+  end.
+
+(* To do *)
+
+Theorem recognize_complete_aux:
+  forall l:list par, wp l ->
+  forall (n:nat) (l':list par),
+  recognize n (app l l') = recognize n l'.
+
+Theorem recognize_complete:
+  forall l:list par,
+  wp l -> recognize 0 l = true.
