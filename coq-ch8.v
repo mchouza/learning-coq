@@ -1538,3 +1538,10 @@ Proof.
           recognize_complete_aux 
             with (l' := nil); auto.
 Qed.
+
+(** Exercise 8.22 **)
+
+Theorem recognize_sound:
+  forall l:list par,
+  recognize 0 l = true -> wp l.
+  
