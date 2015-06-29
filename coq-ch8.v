@@ -1519,7 +1519,22 @@ Theorem recognize_complete_aux:
   forall l:list par, wp l ->
   forall (n:nat) (l':list par),
   recognize n (app l l') = recognize n l'.
+Proof.
+  intros l H.
+  induction H.
+  intros; rewrite app_nil_l; reflexivity.
+  intros; simpl.
+  rewrite <-app_assoc, IHwp; reflexivity.
+  intros; simpl.
+  rewrite <-app_assoc, IHwp1, IHwp2; reflexivity.
+Qed.
 
 Theorem recognize_complete:
   forall l:list par,
   wp l -> recognize 0 l = true.
+Proof.
+  intros l H.
+  rewrite <-app_nil_r with (l := l),
+          recognize_complete_aux 
+            with (l' := nil); auto.
+Qed.
