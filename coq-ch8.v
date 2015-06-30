@@ -1541,6 +1541,28 @@ Qed.
 
 (** Exercise 8.22 **)
 
+(* extracts the shortest recognizable prefix
+   of l if l' is nil and l is non-nil *)
+Fixpoint extract_recog_prefix (l l':list par) :=
+  match l with
+  | nil => None
+  | h :: t => 
+      if recognize 0 (l' ++ (h :: nil))
+      then Some (l' ++ (h :: nil))
+      else extract_recog_prefix t 
+                                (l' ++
+                                 (h :: nil))
+  end.
+
+Lemma erp_works:
+  forall (l l' l'':list par),
+  l = l' ++ l'' ->
+  recognize 0 l' = true ->
+  exists p:list par, 
+  (Some p = extract_recog_prefix l nil) /\
+  (length p <= length l') /\
+  (exists l'':list par, p ++ l'' = l).
+
 Theorem recognize_sound:
   forall l:list par,
   recognize 0 l = true -> wp l.
