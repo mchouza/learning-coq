@@ -1541,29 +1541,65 @@ Qed.
 
 (** Exercise 8.22 **)
 
-(* extracts the shortest recognizable prefix
-   of l if l' is nil and l is non-nil *)
-Fixpoint extract_recog_prefix (l l':list par) :=
-  match l with
-  | nil => None
-  | h :: t => 
-      if recognize 0 (l' ++ (h :: nil))
-      then Some (l' ++ (h :: nil))
-      else extract_recog_prefix t 
-                                (l' ++
-                                 (h :: nil))
+Lemma move_middle_elem:
+  forall (A:Type) (l l':list A) (a:A),
+  l ++ (a :: l') = l ++ (a :: nil) ++ l'.
+Proof.
+  intros A l l' a.
+  induction l.
+  simpl; reflexivity.
+  rewrite <-app_comm_cons.
+  rewrite IHl, app_comm_cons; reflexivity.
+Qed.
+
+Fixpoint n_open_par (n:nat) :=
+  match n with
+  | 0 => nil
+  | S p => open :: n_open_par p
   end.
 
-Lemma erp_works:
-  forall (l l' l'':list par),
-  l = l' ++ l'' ->
-  recognize 0 l' = true ->
-  exists p:list par, 
-  (Some p = extract_recog_prefix l nil) /\
-  (length p <= length l') /\
-  (exists l'':list par, p ++ l'' = l).
+Lemma n_open_par_concat:
+  forall n:nat,
+  (n_open_par n) ++ (open :: nil) =
+  (n_open_par (S n)).
+Proof.
+  intros n.
+  induction n.
+  simpl; reflexivity.
+  simpl in IHn; simpl; rewrite IHn; reflexivity.
+Qed.
+
+Lemma recognize_sound_aux:
+  forall (l:list par) (n:nat),
+  recognize n l = true ->
+  wp ((n_open_par n) ++ l).
+Proof.
+  intros l.
+  induction l.
+  simpl; intros n H.
+  destruct n.
+  simpl; apply wp_e.
+  discriminate.
+  intros n H1.
+  destruct a.
+  rewrite move_middle_elem,
+          app_assoc,
+          n_open_par_concat.
+  apply IHl.
+  apply H1.
+  (* FIRST CASE READY, THE MORE COMPLEX CASE
+     REMAINS *)
+  (* FIXME!!! *)
+  admit.
+Qed.
 
 Theorem recognize_sound:
   forall l:list par,
   recognize 0 l = true -> wp l.
-  
+Proof.
+  intros l H1.
+  cut (wp ((n_open_par 0) ++ l)).
+  simpl; intros; assumption.
+  apply recognize_sound_aux with (n := 0);
+    assumption.
+Qed.
