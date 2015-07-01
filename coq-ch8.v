@@ -1552,13 +1552,33 @@ Proof.
   rewrite IHl, app_comm_cons; reflexivity.
 Qed.
 
+Lemma prefix_elim:
+  forall (A:Type) (l l' l'':list A),
+  l ++ l' = l ++ l'' -> l' = l''.
+Proof.
+  intros A l l' l'' H1.
+  induction l.
+  rewrite app_nil_l in H1; assumption.
+  apply IHl.
+  inversion H1; reflexivity.
+Qed.
+
 Fixpoint n_open_par (n:nat) :=
   match n with
   | 0 => nil
   | S p => open :: n_open_par p
   end.
 
-Lemma n_open_par_concat:
+Lemma n_open_par_len:
+  forall (n:nat), length (n_open_par n) = n.
+Proof.
+  intros n.
+  induction n.
+  simpl; reflexivity.
+  simpl; rewrite IHn; reflexivity.
+Qed.
+
+Lemma n_open_par_concat_single:
   forall n:nat,
   (n_open_par n) ++ (open :: nil) =
   (n_open_par (S n)).
@@ -1567,6 +1587,40 @@ Proof.
   induction n.
   simpl; reflexivity.
   simpl in IHn; simpl; rewrite IHn; reflexivity.
+Qed.
+
+Lemma n_open_par_concat:
+  forall (l l':list par) (n:nat),
+  (n_open_par n) = l ++ l' ->
+  l = n_open_par (length l) /\
+  l' = n_open_par (length l').
+Proof.
+  intros l l'.
+  induction l.
+  simpl; intros n H1.
+  rewrite <-H1, n_open_par_len; auto.
+  simpl; intros n H1.
+  cut (l = n_open_par (length l) /\
+       l' = n_open_par (length l')).
+  intros [H2 H3].
+  rewrite <-H2, <-H3; split.
+  destruct a.
+  reflexivity.
+  destruct n; simpl in H1; discriminate.
+  reflexivity.
+  destruct n; simpl in H1.
+  discriminate.
+  apply IHl with (n := n).
+  inversion H1; reflexivity.
+Qed.
+
+Lemma ins_open_close_wp_irr:
+  forall (l:list par) (n:nat),
+  wp((n_open_par n) ++ l) ->
+  wp((n_open_par (S n)) ++ close :: l).
+Proof.
+  (* FIXME: IMPLEMENT *)
+  admit.
 Qed.
 
 Lemma recognize_sound_aux:
@@ -1584,13 +1638,13 @@ Proof.
   destruct a.
   rewrite move_middle_elem,
           app_assoc,
-          n_open_par_concat.
+          n_open_par_concat_single.
   apply IHl.
   apply H1.
-  (* FIRST CASE READY, THE MORE COMPLEX CASE
-     REMAINS *)
-  (* FIXME!!! *)
-  admit.
+  destruct n.
+  simpl in H1; discriminate.
+  apply ins_open_close_wp_irr, IHl.
+  simpl in H1; assumption.
 Qed.
 
 Theorem recognize_sound:
