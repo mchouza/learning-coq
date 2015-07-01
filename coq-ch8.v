@@ -1563,6 +1563,41 @@ Proof.
   inversion H1; reflexivity.
 Qed.
 
+Lemma len_le_zero_nil:
+  forall (A:Type) (l:list A),
+  length l <= 0 -> l = nil.
+Proof.
+  intros A l H.
+  induction l.
+  reflexivity.
+  simpl in H.
+  apply False_ind,
+        le_Sn_0 with (n := length l).
+  assumption.
+Qed.
+
+Lemma last_app:
+  forall (A:Type) (l l':list A) (a:A),
+  l' <> nil -> (last a (l ++ l') <-> last a l').
+Proof.
+  intros A l l' a H1.
+  split.
+  intros H2.
+  induction l.
+  rewrite app_nil_l in H2; assumption.
+  apply IHl.
+  inversion H2.
+  cut (l= nil /\ l' = nil).
+  intros [_ H4]; contradiction.
+  apply app_eq_nil; symmetry; assumption.
+  assumption.
+  intros H2.
+  induction l.
+  rewrite app_nil_l; assumption.
+  rewrite <-app_comm_cons.
+  apply last_i; assumption.
+Qed.
+
 Fixpoint n_open_par (n:nat) :=
   match n with
   | 0 => nil
@@ -1614,13 +1649,26 @@ Proof.
   inversion H1; reflexivity.
 Qed.
 
-Lemma ins_open_close_wp_irr:
-  forall (l:list par) (n:nat),
-  wp((n_open_par n) ++ l) ->
-  wp((n_open_par (S n)) ++ close :: l).
+Lemma wp_implies_last_close:
+  forall (l:list par),
+  l <> nil -> wp l -> last close l.
 Proof.
-  (* FIXME: IMPLEMENT *)
-  admit.
+  intros l H1 H2.
+  induction H2.
+  apply False_ind, H1; reflexivity.
+  apply last_app
+    with (a := close)
+         (l := open :: l)
+         (l' := close :: nil).
+  discriminate.
+  constructor.
+  destruct l'.
+  rewrite app_nil_r.
+  rewrite app_nil_r in H1.
+  apply IHwp1, H1.
+  apply last_app.
+  discriminate.
+  apply IHwp2; discriminate.
 Qed.
 
 Lemma recognize_sound_aux:
@@ -1628,23 +1676,19 @@ Lemma recognize_sound_aux:
   recognize n l = true ->
   wp ((n_open_par n) ++ l).
 Proof.
-  intros l.
-  induction l.
-  simpl; intros n H.
-  destruct n.
-  simpl; apply wp_e.
-  discriminate.
-  intros n H1.
-  destruct a.
-  rewrite move_middle_elem,
-          app_assoc,
-          n_open_par_concat_single.
-  apply IHl.
-  apply H1.
-  destruct n.
-  simpl in H1; discriminate.
-  apply ins_open_close_wp_irr, IHl.
-  simpl in H1; assumption.
+  cut (forall (m:nat) (l:list par) (n:nat),
+       length l <= m ->
+       recognize n l = true ->
+       wp (n_open_par n ++ l)).
+  intros H l n.
+  apply H with (m := length l), le_n.
+  induction m.
+  intros l n H1 H2.
+  cut (l = nil).
+  (* FIXME: IMPLEMENT *)
+  admit.
+  admit.
+  admit.
 Qed.
 
 Theorem recognize_sound:
