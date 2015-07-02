@@ -1563,6 +1563,126 @@ Proof.
   inversion H1; reflexivity.
 Qed.
 
+Lemma wp_open_close_ins_irr:
+  forall (l l':list par),
+  wp (l ++ l') ->
+  wp (l ++ (open :: close :: nil) ++ l').
+Proof.
+  (* getting a stronger induction hypothesis *)
+  cut (forall (n:nat) (l l':list par),
+       length (l ++ l') <= n ->
+       wp (l ++ l') ->
+       wp (l ++ (open :: close :: nil) ++ l')).
+  intros H l l'.
+  apply H with (n := length (l ++ l')), le_n.
+  (* induction & base case *)
+  intros n.
+  induction n.
+  intros l l' H1 H2.
+  cut (l = nil /\ l' = nil).
+  intros [H3 H4].
+  rewrite H3, H4; simpl.
+  apply wp_p with (l := nil), wp_e.
+  apply app_eq_nil, len_le_zero_is_nil; auto.
+  (* now we have to establish the inductive
+     hypothesis *)
+  intros l l' H1 H2.
+  (* we work with the different cases by using
+     induction over wp *)
+  remember (l ++ l') as ll.
+  induction H2.
+  (* the nil case is easy *)
+  apply IHn.
+  rewrite <-Heqll; simpl; apply le_0_n.
+  rewrite <-Heqll; apply wp_e.
+  (* now we need to handle the more complex
+     case where l ++ l' is enclosed by 
+     parentheses *)
+  (* we first dispose of the l = nil & l' = nil
+     cases *)
+  destruct l.
+  apply wp_c.
+  apply wp_e.
+  apply wp_c.
+  apply wp_p with (l := nil), wp_e.
+  rewrite app_nil_l in Heqll.
+  rewrite <-Heqll; apply wp_p; assumption.
+  destruct l'.
+  rewrite app_nil_r.
+  rewrite app_nil_r in Heqll.
+  apply wp_c.
+  rewrite <-Heqll.
+  apply wp_p; assumption.
+  apply wp_p with (l := nil), wp_e.
+  (* now we clean up a bit *)
+  remember (p :: l) as l1.
+  remember (p0 :: l') as l2.
+  (* we need to prove that p is open *)
+  assert (p = open) as H3.
+  rewrite Heql1 in Heqll.
+  rewrite <-app_comm_cons in Heqll.
+  inversion Heqll.
+  reflexivity.
+  (* we need to prove that the last element of
+    l2 is close *)
+  assert (exists l3:list par,
+          l2 = l3 ++ (close :: nil)) as H4.
+  exists (removelast l2).
+  apply app_inv_head with (l := l1).
+  rewrite <-Heqll.
+  rewrite app_assoc.
+  rewrite <-removelast_app.
+  rewrite <-Heqll.
+  rewrite app_comm_cons.
+  rewrite removelast_app.
+  simpl.
+  rewrite app_nil_r.
+  reflexivity.
+  discriminate.
+  rewrite Heql2; discriminate.
+  destruct H4 as [l3 H4].
+  (* now we can apply the constructor *)
+  rewrite H4, Heql1, H3.
+  rewrite app_assoc with (m := l3).
+  rewrite <-app_comm_cons.
+  rewrite app_assoc with (l := l).
+  apply wp_p 
+    with (l := l ++ ((open :: close :: nil) ++
+                     l3)).
+  (* we need to prove that the length of
+     l ++ l3 is smaller than S n *)
+  assert (length l1 = S(length l)) as H5.
+  rewrite Heql1; simpl; reflexivity.
+  assert (length l2 = S(length l3)) as H6.
+  rewrite H4; rewrite app_length; simpl;
+    rewrite <-plus_n_Sm, plus_n_O; reflexivity.
+  assert (length (l ++ l3) <= n) as H7.
+  rewrite app_length.
+  do 2 apply le_S_n.
+  apply le_S.
+  rewrite <-plus_Sn_m, plus_n_Sm, <-H5, <-H6.
+  rewrite <-app_length, <-Heqll; assumption.
+  (* we need to prove that l0 = l ++ l3 *)
+  assert (open :: l0 ++ (close :: nil) =
+          open :: l ++ l3 ++
+          (close :: nil) ) as H8.
+  rewrite <-H4, <-H3.
+  repeat rewrite app_comm_cons; rewrite <-Heql1.
+  rewrite H3, <-app_comm_cons, Heqll.
+  reflexivity.
+  assert (l0 = l ++ l3) as H9.
+  inversion H8.
+  apply app_inv_tail with (l := close :: nil).
+  rewrite <-app_assoc; assumption.
+  (* now we can apply the inductive 
+     hypothesis *)
+  apply IHn; [assumption | rewrite <-H9]; 
+    assumption.
+
+  (* FIXME: DO!!! *)
+  admit.
+Qed.
+
 Fixpoint n_open_par (n:nat) :=
   match n with
   | 0 => nil
@@ -1619,8 +1739,12 @@ Lemma ins_open_close_wp_irr:
   wp((n_open_par n) ++ l) ->
   wp((n_open_par (S n)) ++ close :: l).
 Proof.
-  (* FIXME: IMPLEMENT *)
-  admit.
+  intros l n H.
+  rewrite <-n_open_par_concat_single,
+          move_middle_elem,
+          <-app_assoc,
+          app_assoc with (n := l).
+  apply wp_open_close_ins_irr; assumption.
 Qed.
 
 Lemma recognize_sound_aux:
