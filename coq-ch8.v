@@ -1552,135 +1552,73 @@ Proof.
   rewrite IHl, app_comm_cons; reflexivity.
 Qed.
 
-Lemma prefix_elim:
-  forall (A:Type) (l l' l'':list A),
-  l ++ l' = l ++ l'' -> l' = l''.
+Lemma wp_not_nil_ends:
+  forall (l:list par),
+  l <> nil ->
+  wp l ->
+  exists l':list par,
+  l = open :: l' ++ (close :: nil).
 Proof.
-  intros A l l' l'' H1.
-  induction l.
-  rewrite app_nil_l in H1; assumption.
-  apply IHl.
-  inversion H1; reflexivity.
+  intros l l_not_nil wp_l.
+  induction wp_l as [ | l | l1 l2].
+  apply False_ind; auto.
+  exists l; auto.
+  destruct l1 as [|h1 t1], l2 as [|h2 t2];
+    auto.
+  rewrite app_nil_r; apply IHwp_l1;
+    discriminate.
+  destruct IHwp_l1 as [l1' IHwp_l1],
+           IHwp_l2 as [l2' IHwp_l2];
+    try discriminate.
+  exists (l1' ++ close :: nil ++ open :: l2').
+  rewrite app_comm_cons, IHwp_l1, IHwp_l2.
+  repeat rewrite app_comm_cons.
+  repeat rewrite app_assoc; auto.
 Qed.
 
-Lemma wp_open_close_ins_irr:
-  forall (l l':list par),
-  wp (l ++ l') ->
-  wp (l ++ (open :: close :: nil) ++ l').
-Proof.
-  (* getting a stronger induction hypothesis *)
-  cut (forall (n:nat) (l l':list par),
-       length (l ++ l') <= n ->
-       wp (l ++ l') ->
-       wp (l ++ (open :: close :: nil) ++ l')).
-  intros H l l'.
-  apply H with (n := length (l ++ l')), le_n.
-  (* induction & base case *)
-  intros n.
-  induction n.
-  intros l l' H1 H2.
-  cut (l = nil /\ l' = nil).
-  intros [H3 H4].
-  rewrite H3, H4; simpl.
-  apply wp_p with (l := nil), wp_e.
-  apply app_eq_nil, len_le_zero_is_nil; auto.
-  (* now we have to establish the inductive
-     hypothesis *)
-  intros l l' H1 H2.
-  (* we work with the different cases by using
-     induction over wp *)
-  remember (l ++ l') as ll.
-  induction H2.
-  (* the nil case is easy *)
-  apply IHn.
-  rewrite <-Heqll; simpl; apply le_0_n.
-  rewrite <-Heqll; apply wp_e.
-  (* now we need to handle the more complex
-     case where l ++ l' is enclosed by 
-     parentheses *)
-  (* we first dispose of the l = nil & l' = nil
-     cases *)
-  destruct l.
-  apply wp_c.
-  apply wp_e.
-  apply wp_c.
-  apply wp_p with (l := nil), wp_e.
-  rewrite app_nil_l in Heqll.
-  rewrite <-Heqll; apply wp_p; assumption.
-  destruct l'.
-  rewrite app_nil_r.
-  rewrite app_nil_r in Heqll.
-  apply wp_c.
-  rewrite <-Heqll.
-  apply wp_p; assumption.
-  apply wp_p with (l := nil), wp_e.
-  (* now we clean up a bit *)
-  remember (p :: l) as l1.
-  remember (p0 :: l') as l2.
-  (* we need to prove that p is open *)
-  assert (p = open) as H3.
-  rewrite Heql1 in Heqll.
-  rewrite <-app_comm_cons in Heqll.
-  inversion Heqll.
-  reflexivity.
-  (* we need to prove that the last element of
-    l2 is close *)
-  assert (exists l3:list par,
-          l2 = l3 ++ (close :: nil)) as H4.
-  exists (removelast l2).
-  apply app_inv_head with (l := l1).
-  rewrite <-Heqll.
-  rewrite app_assoc.
-  rewrite <-removelast_app.
-  rewrite <-Heqll.
-  rewrite app_comm_cons.
-  rewrite removelast_app.
-  simpl.
-  rewrite app_nil_r.
-  reflexivity.
-  discriminate.
-  rewrite Heql2; discriminate.
-  destruct H4 as [l3 H4].
-  (* now we can apply the constructor *)
-  rewrite H4, Heql1, H3.
-  rewrite app_assoc with (m := l3).
-  rewrite <-app_comm_cons.
-  rewrite app_assoc with (l := l).
-  apply wp_p 
-    with (l := l ++ ((open :: close :: nil) ++
-                     l3)).
-  (* we need to prove that the length of
-     l ++ l3 is smaller than S n *)
-  assert (length l1 = S(length l)) as H5.
-  rewrite Heql1; simpl; reflexivity.
-  assert (length l2 = S(length l3)) as H6.
-  rewrite H4; rewrite app_length; simpl;
-    rewrite <-plus_n_Sm, plus_n_O; reflexivity.
-  assert (length (l ++ l3) <= n) as H7.
-  rewrite app_length.
-  do 2 apply le_S_n.
-  apply le_S.
-  rewrite <-plus_Sn_m, plus_n_Sm, <-H5, <-H6.
-  rewrite <-app_length, <-Heqll; assumption.
-  (* we need to prove that l0 = l ++ l3 *)
-  assert (open :: l0 ++ (close :: nil) =
-          open :: l ++ l3 ++
-          (close :: nil) ) as H8.
-  rewrite <-H4, <-H3.
-  repeat rewrite app_comm_cons; rewrite <-Heql1.
-  rewrite H3, <-app_comm_cons, Heqll.
-  reflexivity.
-  assert (l0 = l ++ l3) as H9.
-  inversion H8.
-  apply app_inv_tail with (l := close :: nil).
-  rewrite <-app_assoc; assumption.
-  (* now we can apply the inductive 
-     hypothesis *)
-  apply IHn; [assumption | rewrite <-H9]; 
-    assumption.
+Fixpoint count_par (l:list par) (p:par) :=
+  match l, p with
+  | nil, _ => 0
+  | open :: t, open => S (count_par t p)
+  | close :: t, close => S (count_par t p)
+  | h :: t, _ => count_par t p
+  end.
 
-  (* FIXME: DO!!! *)
-  admit.
+Compute count_par (open :: open :: close :: nil)
+                  open.
+Compute count_par (open :: open :: close :: nil)
+                  close.
+
+Lemma count_par_app:
+  forall (l l':list par) (p:par),
+  count_par (l ++ l') p =
+  (count_par l p) + (count_par l' p).
+Proof.
+  induction l; auto.
+  destruct a, p; simpl; try apply f_equal; auto.
+Qed.
+
+Lemma count_par_length:
+  forall (l:list par),
+  (count_par l open) + (count_par l close) =
+  length l.
+Proof.
+  induction l; auto.
+  destruct a; simpl; try rewrite <-plus_n_Sm;
+    apply f_equal, IHl.
+Qed.
+
+Lemma wp_balanced_count_par:
+  forall (l:list par),
+  wp l -> count_par l open = count_par l close.
+Proof.
+  intros l wp_l.
+  induction wp_l; auto.
+  rewrite app_comm_cons.
+  repeat rewrite count_par_app; simpl.
+  rewrite <-plus_n_Sm.
+  repeat rewrite <-plus_n_O; auto.
+  repeat rewrite count_par_app; auto.
 Qed.
 
 Fixpoint n_open_par (n:nat) :=
@@ -1709,42 +1647,65 @@ Proof.
   simpl in IHn; simpl; rewrite IHn; reflexivity.
 Qed.
 
-Lemma n_open_par_concat:
-  forall (l l':list par) (n:nat),
-  (n_open_par n) = l ++ l' ->
-  l = n_open_par (length l) /\
-  l' = n_open_par (length l').
+Lemma n_open_par_counts:
+  forall n:nat,
+  count_par (n_open_par n) open = n /\
+  count_par (n_open_par n) close = 0.
 Proof.
-  intros l l'.
-  induction l.
-  simpl; intros n H1.
-  rewrite <-H1, n_open_par_len; auto.
-  simpl; intros n H1.
-  cut (l = n_open_par (length l) /\
-       l' = n_open_par (length l')).
-  intros [H2 H3].
-  rewrite <-H2, <-H3; split.
-  destruct a.
-  reflexivity.
-  destruct n; simpl in H1; discriminate.
-  reflexivity.
-  destruct n; simpl in H1.
-  discriminate.
-  apply IHl with (n := n).
-  inversion H1; reflexivity.
+  induction n as [|n [IHn1 IHn2]]; simpl; auto.
 Qed.
 
-Lemma ins_open_close_wp_irr:
+Lemma n_open_par_close_aux:
   forall (l:list par) (n:nat),
-  wp((n_open_par n) ++ l) ->
-  wp((n_open_par (S n)) ++ close :: l).
+  wp ((n_open_par n) ++ l) ->
+  wp ((n_open_par (S n)) ++ close :: l).
 Proof.
-  intros l n H.
+  cut (forall (n m:nat) (l:list par),
+       length (n_open_par m ++ l) <= n ->
+       wp (n_open_par m ++ l) ->
+       wp (n_open_par (S m) ++ close :: l)).
+  intros H l n;
+  apply
+    H with (n := length (n_open_par n ++ l)),
+    le_n.
+  induction n.
+  intros m l H1 _.
+  cut (m = 0 /\ l = nil).
+  intros [H2 H3].
+  rewrite H2, H3; simpl.
+  apply wp_p with (l := nil), wp_e.
+  cut ((n_open_par m) = nil /\ l = nil).
+  intros [H2 H3].
+  cut (length (n_open_par m) = 0).
+  intros H4.
+  rewrite n_open_par_len in H4.
+  split; assumption.
+  rewrite H2; auto.
+  cut (n_open_par m ++ l = nil).
+  intros; apply app_eq_nil; auto.
+  apply len_le_zero_is_nil; auto.
+  intros m l H1 H2.
+  destruct m as [|m].
+  simpl.
+  apply wp_c with (l := open :: close :: nil)
+                  (l' := l).
+  apply wp_p with (l := nil),
+        wp_e.
+  apply H2.
+  remember (n_open_par (S m) ++ l) as wpl.
+  induction H2.
+  simpl in Heqwpl; discriminate.
+  destruct l as [| h t ].
   rewrite <-n_open_par_concat_single,
-          move_middle_elem,
-          <-app_assoc,
-          app_assoc with (n := l).
-  apply wp_open_close_ins_irr; assumption.
+          app_nil_r in Heqwpl.
+  cut (close = open).
+  intros; discriminate.
+  apply app_inj_tail with (x := open :: l0)
+                          (y := n_open_par m);
+    assumption.
+  (* FIXME! *)
+  admit.
+  admit.
 Qed.
 
 Lemma recognize_sound_aux:
@@ -1767,7 +1728,7 @@ Proof.
   apply H1.
   destruct n.
   simpl in H1; discriminate.
-  apply ins_open_close_wp_irr, IHl.
+  apply n_open_par_close_aux, IHl.
   simpl in H1; assumption.
 Qed.
 
