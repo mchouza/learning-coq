@@ -1552,28 +1552,23 @@ Proof.
   rewrite IHl, app_comm_cons; reflexivity.
 Qed.
 
-Lemma wp_not_nil_ends:
-  forall (l:list par),
+Lemma non_nil_list_has_last:
+  forall (A:Type) (l:list A),
   l <> nil ->
-  wp l ->
-  exists l':list par,
-  l = open :: l' ++ (close :: nil).
+  exists l':list A, exists a:A,
+  l = l' ++ a :: nil.
 Proof.
-  intros l l_not_nil wp_l.
-  induction wp_l as [ | l | l1 l2].
-  apply False_ind; auto.
-  exists l; auto.
-  destruct l1 as [|h1 t1], l2 as [|h2 t2];
-    auto.
-  rewrite app_nil_r; apply IHwp_l1;
-    discriminate.
-  destruct IHwp_l1 as [l1' IHwp_l1],
-           IHwp_l2 as [l2' IHwp_l2];
-    try discriminate.
-  exists (l1' ++ close :: nil ++ open :: l2').
-  rewrite app_comm_cons, IHwp_l1, IHwp_l2.
-  repeat rewrite app_comm_cons.
-  repeat rewrite app_assoc; auto.
+  intros A l l_not_nil.
+  induction l as [| h t].
+  apply False_ind, l_not_nil; reflexivity.
+  destruct t as [| h' t].
+  exists nil; exists h; simpl; reflexivity.
+  cut (exists l'':list A, exists a:A,
+       h' :: t = l'' ++ a :: nil).
+  intros [l'' [a H]].
+  exists (h :: l''); exists a.
+  rewrite <-app_comm_cons, H; auto.
+  apply IHt; discriminate.
 Qed.
 
 Fixpoint count_par (l:list par) (p:par) :=
@@ -1655,6 +1650,44 @@ Proof.
   induction n as [|n [IHn1 IHn2]]; simpl; auto.
 Qed.
 
+Lemma list_ending_aux_lemma:
+  forall (l l':list par) (n:nat),
+  open :: l ++ close :: nil =
+  n_open_par n ++ l' ->
+  exists l'':list par,
+  l' = l'' ++ close :: nil.
+Proof.
+  intros l l' n H1.
+  cut (exists l'':list par, exists p:par,
+       l' = l'' ++ p :: nil).
+  intros [l'' [p H2]].
+  exists l''.
+  destruct p.
+  rewrite H2 in H1.
+  cut (open :: l = n_open_par n ++ l'' /\
+       close = open).
+  intros [_ H3]; discriminate.
+  apply app_inj_tail.
+  rewrite <-app_assoc, <-app_comm_cons; auto.
+  auto.
+  apply non_nil_list_has_last.
+  destruct l', n.
+  cut (length(open :: l ++ close :: nil) =
+       length(n_open_par 0 ++ nil)).
+  rewrite app_length; simpl; intros; 
+    discriminate.
+  rewrite H1; auto.
+  rewrite <-n_open_par_concat_single,
+          app_nil_r in H1.
+  cut (open :: l = n_open_par n /\
+       close = open).
+  intros [_ H2]; discriminate.
+  apply app_inj_tail.
+  rewrite <-app_comm_cons; auto.
+  discriminate.
+  discriminate.
+Qed.
+
 Lemma n_open_par_close_aux:
   forall (l:list par) (n:nat),
   wp ((n_open_par n) ++ l) ->
@@ -1695,16 +1728,69 @@ Proof.
   remember (n_open_par (S m) ++ l) as wpl.
   induction H2.
   simpl in Heqwpl; discriminate.
-  destruct l as [| h t ].
-  rewrite <-n_open_par_concat_single,
-          app_nil_r in Heqwpl.
-  cut (close = open).
-  intros; discriminate.
-  apply app_inj_tail with (x := open :: l0)
-                          (y := n_open_par m);
-    assumption.
+  clear IHwp.
+  cut (exists l':list par,
+       n_open_par (S (S m)) ++ close :: l =
+       open :: (n_open_par (S m) ++
+       close :: l') ++ close :: nil).
+  intros [l' H3].
+  rewrite H3, app_comm_cons.
+  apply wp_p, IHn.
+  cut (length (n_open_par (S (S m)) ++
+               close :: l) <= S(S(S(n)))).
+  intros H4.
+  cut (length (open :: (n_open_par (S m) ++
+                        close :: l') ++
+               close :: nil) <= S(S(S(n)))).
+  intros H5.
+  simpl in H5.
+  repeat rewrite app_length in H5; simpl in H5.
+  repeat rewrite <-plus_n_Sm in H5.
+  rewrite <-plus_n_O in H5.
+  rewrite <-app_length in H5.
+  do 4 apply le_S_n; apply le_S; auto.
+  rewrite <-H3; auto.
+  rewrite app_length; simpl.
+  rewrite <-plus_n_Sm.
+  rewrite Heqwpl in H1.
+  rewrite app_length in H1.
+  simpl in H1.
+  do 2 apply le_n_S; auto.
+  cut (l0 = n_open_par m ++ l').
+  intros H4.
+  rewrite <-H4; auto.
+  cut (open :: l0 = n_open_par (S m) ++ l').
+  intros H4.
+  simpl in H4.
+  inversion H4; auto.
+  cut (open :: l0 ++ close :: nil =
+       n_open_par (S m) ++ l' ++ close :: nil).
+  intros H5.
+  rewrite app_comm_cons, app_assoc in H5.
+  cut (open :: l0 = n_open_par (S m) ++ l' /\
+       close = close).
+  intros H6.
+  apply H6.
+  apply app_inj_tail
+    with (x := (open :: l0))
+         (y := (n_open_par (S m) ++ l')); auto.
+  rewrite Heqwpl.
+  apply f_equal.
+  apply app_inv_head
+    with (l := n_open_par (S (S m)) ++
+               close :: nil).
+  simpl in *.
+  repeat rewrite <-app_assoc; simpl.
+  rewrite H3; repeat apply f_equal.
+  rewrite <-app_assoc, app_comm_cons; auto.
+  cut (exists l', l = l' ++ close :: nil).
+  intros [l' H3].
+  exists l'.
+  rewrite H3; simpl; repeat apply f_equal.
+  rewrite app_comm_cons, <-app_assoc; auto.
+  apply list_ending_aux_lemma
+    with (l := l0) (l' := l) (n := S m); auto.
   (* FIXME! *)
-  admit.
   admit.
 Qed.
 
