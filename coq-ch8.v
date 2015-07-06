@@ -892,17 +892,28 @@ Definition sorted'
 (* To do *)
 
 Lemma nil_and_single_are_sorted':
-  forall (A:Set)(R:A->A->Prop)(a:A),
-  sorted' A R nil /\ sorted' A R (a :: nil).
+  forall (A:Set)(R:A->A->Prop),
+  sorted' A R nil /\ 
+  forall a:A, sorted' A R (a :: nil).
 Proof.
   unfold sorted'.
-  intros A R a.
+  intros A R.
   split.
   intros l1 l2 n1 n2 H1.
   destruct l1; simpl in H1; discriminate.
-  intros l1 l2 n1 n2 H1.
+  intros a l1 l2 n1 n2 H1.
   destruct l1; simpl in H1; inversion H1.
   destruct l1; simpl in H1; discriminate.
+Qed.
+
+Lemma sorted'_extension:
+  forall (A:Set)(R:A->A->Prop)(l:list A)
+         (a b:A),
+   R a b /\ sorted' A R (b :: l) ->
+   sorted' A R (a :: b :: l).
+Proof.
+  (* FIXME *)
+  admit.
 Qed.
 
 Lemma sorted_equiv:
@@ -914,12 +925,32 @@ Proof.
   intros H1.
   cut (sorted' A R nil /\
        forall x:A, sorted' A R (x :: nil)).
-  induction H1; intros H2; try apply H2. 
-  (* FIXME: FINISH *)
-  admit.
-  admit.
-  admit.
-Qed.  
+  induction H1; intros H2; try apply H2.
+  cut (sorted' A R (y :: l)).
+  intros H3.
+  apply sorted'_extension; auto.
+  apply IHsorted, H2.
+  apply nil_and_single_are_sorted'.
+  unfold sorted'.
+  intros H1.
+  induction l.
+  constructor.
+  destruct l as [| b l'].
+  constructor.
+  cut (R a b /\ sorted A R (b :: l')).
+  intros [H2 H3].
+  apply sorted2; auto.
+  split.
+  apply H1 with (l1 := nil) (l2 := l') (n1 := a)
+                (n2 := b).
+  simpl; auto.
+  apply IHl.
+  intros l1' l2' n1' n2' H2.
+  apply H1 with (l1 := a :: l1') (l2 := l2')
+                (n1 := n1') (n2 := n2').
+  rewrite <-app_comm_cons.
+  rewrite H2; auto.
+Qed.
 
 (** Exercise 8.17 **)
 
