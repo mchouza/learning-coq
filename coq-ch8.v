@@ -1741,15 +1741,48 @@ Proof.
   discriminate.
 Qed.
 
+Lemma wp_not_nil_len:
+  forall l:list par,
+  l <> nil -> wp l -> 2 <= length l.
+Proof.
+  intros l H1 H2.
+  cut (count_par l open = count_par l close).
+  intros H3.
+  cut (length l = count_par l open +
+                  count_par l close).
+  intros H4.
+  destruct (count_par l close).
+  rewrite H3 in H4; simpl in H4.
+  destruct l.
+  apply False_ind, H1; reflexivity.
+  simpl in H4; discriminate.
+  rewrite H4, H3, <-plus_n_Sm; simpl.
+  do 2 apply le_n_S.
+  apply le_0_n.
+  rewrite count_par_length; auto.
+  apply wp_balanced_count_par; auto.
+Qed.
+
 Lemma wp_prefix_length_bounds:
-  forall (l l' l'':list par) (n:nat),
+  forall (l l':list par),
   l <> nil /\ l' <> nil ->
   wp l /\ wp l' /\ wp (l ++ l') ->
-  l = n_open_par (S n) ++ l'' ->
-  2 <= length l <= length (l ++ l') - 2.
+  2 <= length l /\
+  S (S (length l) ) <= length (l ++ l').
 Proof.
-  (* FIXME *)
-  admit.
+  intros l l' H1 H2.
+  split.
+  apply wp_not_nil_len, H2; apply H1.
+  rewrite app_length.
+  cut (2 <= length l').
+  intros H3.
+  cut (S (S (length l)) = length l + 2).
+  intros H4.
+  rewrite H4.
+  apply plus_le_compat; auto.
+  rewrite <-plus_n_Sm, <-plus_n_Sm, <-plus_n_O.
+  auto.
+  apply wp_not_nil_len, H2; apply H1.
 Qed.
 
 Lemma wp_1st_includes_open_par_seq:
@@ -1908,10 +1941,57 @@ Proof.
   rewrite app_comm_cons, <-app_assoc; auto.
   apply list_ending_aux_lemma
     with (l := l0) (l' := l) (n := S m); auto.
+  destruct l0, l'.
+  simpl in Heqwpl; discriminate.
+  apply IHwp2.
+  rewrite <-Heqwpl, app_nil_l; auto.
+  rewrite app_nil_l in H1; auto.
+  apply IHwp1.
+  rewrite <-Heqwpl, app_nil_r; auto.
+  rewrite app_nil_r in H1; auto.
+  remember (p :: l0) as l1.
+  remember (p0 :: l') as l2.
+  clear IHwp1 IHwp2.
+  cut (exists l1t:list par,
+       l1 = n_open_par (S m) ++ l1t).
+  intros [l1t H3].
+  cut (S (S (length l1)) <= length (l1 ++ l2)).
+  intros H4.
+  cut (length l1 <= n).
+  intros H5.
+  cut (wp(n_open_par (S (S m)) ++ close :: l1t)).
+  intros H6.
+  cut (n_open_par (S (S m)) ++
+       close :: l1t ++ l2 =
+       n_open_par (S (S m)) ++ close :: l).
+  intros H7.
+  rewrite <-H7, app_comm_cons, app_assoc.
+  apply wp_c; auto.
+  cut (l = l1t ++ l2).
+  intros H7.
+  rewrite H7; auto.
+  apply app_inv_head
+    with (l := n_open_par (S m)).
+  rewrite <-Heqwpl, app_assoc, <-H3; auto.
   apply IHn.
-
-  (* FIXME! *)
-  admit.
+  rewrite <-H3; auto.
+  rewrite <-H3; auto.
+  do 2 apply le_S_n; apply le_S.
+  apply le_trans with (m := length (l1 ++ l2));
+    auto.
+  apply wp_prefix_length_bounds.
+  rewrite Heql1, Heql2; split; discriminate.
+  split; [auto | split; auto].
+  apply wp_c; auto.
+  Check wp_1st_includes_open_par_seq.
+  apply wp_1st_includes_open_par_seq
+    with (l := l1) (l' := l2) (n := S m)
+         (l'' := l).
+  split.
+  rewrite Heql1; discriminate.
+  split; try split; auto.
+  apply wp_c; auto.
+  auto.
 Qed.
 
 Lemma recognize_sound_aux:
