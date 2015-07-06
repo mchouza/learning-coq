@@ -912,8 +912,16 @@ Lemma sorted'_extension:
    R a b /\ sorted' A R (b :: l) ->
    sorted' A R (a :: b :: l).
 Proof.
-  (* FIXME *)
-  admit.
+  unfold sorted'.
+  intros A R l a b [H1 H2].
+  intros l1' l2' n1' n2' H3.
+  destruct l1' as [|a' l1''].
+  simpl in H3.
+  inversion H3.
+  rewrite <-H0, <-H4; auto.
+  rewrite <-app_comm_cons in H3.
+  inversion H3.
+  apply H2 with (l1 := l1'') (l2 := l2'); auto.
 Qed.
 
 Lemma sorted_equiv:
