@@ -870,11 +870,56 @@ Proof.
   constructor; exact IHp.
 Qed.
 
-(* TO BE DONE *)
-
 (** Exercise 8.16 **)
 
-(* TO BE DONE *)
+(* Given *)
+
+Inductive sorted (A:Set)(R:A->A->Prop) :
+  list A -> Prop :=
+  | sorted0: sorted A R nil
+  | sorted1: forall x:A, sorted A R (cons x nil)
+  | sorted2:
+      forall (x y:A) (l:list A),
+      R x y ->
+      sorted A R (cons y l) ->
+      sorted A R (cons x (cons y l)).
+
+Definition sorted' 
+  (A:Set)(R:A->A->Prop)(l:list A) :=
+  forall (l1 l2:list A)(n1 n2:A),
+  l = app l1 (cons n1 (cons n2 l2)) -> R n1 n2.
+
+(* To do *)
+
+Lemma nil_and_single_are_sorted':
+  forall (A:Set)(R:A->A->Prop)(a:A),
+  sorted' A R nil /\ sorted' A R (a :: nil).
+Proof.
+  unfold sorted'.
+  intros A R a.
+  split.
+  intros l1 l2 n1 n2 H1.
+  destruct l1; simpl in H1; discriminate.
+  intros l1 l2 n1 n2 H1.
+  destruct l1; simpl in H1; inversion H1.
+  destruct l1; simpl in H1; discriminate.
+Qed.
+
+Lemma sorted_equiv:
+  forall (A:Set)(R:A->A->Prop)(l:list A),
+  sorted A R l <-> sorted' A R l.
+Proof.
+  intros A R l.
+  split.
+  intros H1.
+  cut (sorted' A R nil /\
+       forall x:A, sorted' A R (x :: nil)).
+  induction H1; intros H2; try apply H2. 
+  (* FIXME: FINISH *)
+  admit.
+  admit.
+  admit.
+Qed.  
 
 (** Exercise 8.17 **)
 
