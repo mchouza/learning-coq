@@ -1571,6 +1571,45 @@ Proof.
   apply IHt; discriminate.
 Qed.
 
+Lemma app_firstn_1st_comp:
+  forall (A:Type) (l l':list A) (n:nat),
+  n <= length l -> 
+  firstn n (l ++ l') = firstn n l.
+Proof.
+  induction l.
+  intros l' n H1.
+  cut (0 = n).
+  intros H2; rewrite <-H2; auto.
+  apply le_n_0_eq; auto.
+  intros l' n H1.
+  rewrite <-app_comm_cons.
+  destruct n as [|n].
+  simpl; auto.
+  simpl.
+  cut (n <= length l).
+  intros H2.
+  rewrite IHl; auto.
+  apply le_S_n; auto.
+Qed.
+
+Lemma firstn_whole:
+  forall (A:Type) (l:list A) (n:nat),
+  length l <= n -> firstn n l = l.
+Proof.
+  induction l.
+  intros n H.
+  destruct n; simpl; auto.
+  intros n H1.
+  destruct n as [| m].
+  simpl in H1.
+  apply False_ind,
+        le_Sn_O with (n := length l),
+        H1.
+  simpl in *.
+  rewrite IHl; auto.
+  apply le_S_n; auto.
+Qed.
+
 Fixpoint count_par (l:list par) (p:par) :=
   match l, p with
   | nil, _ => 0
@@ -1650,6 +1689,20 @@ Proof.
   induction n as [|n [IHn1 IHn2]]; simpl; auto.
 Qed.
 
+Lemma n_open_par_firstm:
+  forall (m n:nat),
+  m <= n ->
+  firstn m (n_open_par n) = n_open_par m.
+Proof.
+  induction m.
+  intros; auto.
+  intros n H1.
+  destruct n as [| n].
+  apply False_ind, le_Sn_O with (n := m); auto.
+  simpl; rewrite IHm; auto.
+  apply le_S_n; auto.
+Qed.
+
 Lemma list_ending_aux_lemma:
   forall (l l':list par) (n:nat),
   open :: l ++ close :: nil =
@@ -1686,6 +1739,71 @@ Proof.
   rewrite <-app_comm_cons; auto.
   discriminate.
   discriminate.
+Qed.
+
+Lemma wp_prefix_length_bounds:
+  forall (l l' l'':list par) (n:nat),
+  l <> nil /\ l' <> nil ->
+  wp l /\ wp l' /\ wp (l ++ l') ->
+  l = n_open_par (S n) ++ l'' ->
+  2 <= length l <= length (l ++ l') - 2.
+Proof.
+  (* FIXME *)
+  admit.
+Qed.
+
+Lemma wp_1st_includes_open_par_seq:
+forall (l l' l'':list par) (n:nat),
+  l <> nil /\ wp l /\ wp l' /\ wp (l ++ l') ->
+  l ++ l' = n_open_par n ++ l'' ->
+  exists l''':list par,
+  l = n_open_par n ++ l'''.
+Proof.
+  intros l l' l'' n H1 H2.
+  exists (skipn n l).
+  cut (n <= length l \/ length l < n).
+  intros [H3 | H4].
+  cut (firstn n l = n_open_par n).
+  intros H5.
+  rewrite <-H5.
+  symmetry.
+  apply firstn_skipn.
+  cut (firstn n l = firstn n (l ++ l')).
+  intros H5.
+  rewrite H5, H2.
+  rewrite app_firstn_1st_comp.
+  rewrite n_open_par_firstm; auto.
+  rewrite n_open_par_len; auto.
+  rewrite app_firstn_1st_comp; auto.
+  cut (l = n_open_par (length l)).
+  intros H5.
+  cut (length l = 0).
+  intros H6.
+  destruct l as [| h t ].
+  apply False_ind, H1; reflexivity.
+  simpl in H6; discriminate.
+  cut (count_par l open = count_par l close).
+  intros H6.
+  rewrite H5 in H6.
+  cut (count_par (n_open_par (length l)) open =
+       length l /\
+       count_par (n_open_par (length l)) close =
+       0).
+  intros [H7 H8].
+  rewrite <-H7, <-H8, H6; auto.
+  apply n_open_par_counts.
+  apply wp_balanced_count_par, H1.
+  cut (l = firstn (length l) (l ++ l')).
+  intros H5.
+  rewrite H2 in H5.
+  rewrite app_firstn_1st_comp in H5; auto.
+  rewrite n_open_par_firstm in H5; auto.
+  apply lt_le_weak; auto.
+  rewrite n_open_par_len; apply lt_le_weak; auto.
+  rewrite app_firstn_1st_comp.
+  rewrite firstn_whole; auto.
+  apply le_n.
+  apply le_or_lt.
 Qed.
 
 Lemma n_open_par_close_aux:
@@ -1790,6 +1908,8 @@ Proof.
   rewrite app_comm_cons, <-app_assoc; auto.
   apply list_ending_aux_lemma
     with (l := l0) (l' := l) (n := S m); auto.
+  apply IHn.
+
   (* FIXME! *)
   admit.
 Qed.
