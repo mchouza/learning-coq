@@ -2112,3 +2112,83 @@ Proof.
   apply recognize_sound_aux with (n := 0);
     assumption.
 Qed.
+
+(** Exercise 8.22 **)
+
+(* TO DO *)
+
+(** Exercise 8.23 **)
+
+(* TO DO *)
+
+(** Exercise 8.24 **)
+
+(* TO DO *)
+
+(** Exercise 8.25 **)
+
+(* TO DO *)
+
+(** Exercise 8.26 **)
+
+(* TO DO *)
+
+(** Exercise 8.27 **)
+
+(* TO DO *)
+
+(** Exercise 8.28 **)
+
+Lemma ex_8_28:
+  ~sorted nat le (1 :: 3 :: 2 :: nil).
+Proof.
+  intros H1.
+  cut (sorted nat le (3 :: 2 :: nil)).
+  intros H2.
+  inversion H2.
+  cut (1 <= 0).
+  intros H6.
+  inversion H6.
+  do 2 apply le_S_n; auto.
+  inversion H1; auto.
+Qed.
+
+(** Exercise 8.29 **)
+
+Inductive payable : nat -> Prop :=
+  | O_pay : payable 0
+  | inc_3_pay : 
+      forall n:nat, payable n -> payable (n + 3)
+  | inc_5_pay :
+      forall n:nat, payable n -> payable (n + 5).
+
+Lemma ex_8_29:
+  forall n:nat, 8 <= n -> payable n.
+Proof.
+  intros n H1.
+  assert (payable 8) as H2.
+  rewrite plus_n_O.
+  do 3 (rewrite plus_Sn_m; rewrite plus_n_Sm).
+  constructor.
+  rewrite plus_n_O, plus_comm.
+  constructor; constructor.
+  assert (payable 9) as H3.
+  do 3 (
+    rewrite plus_n_O;
+    do 3 (rewrite plus_Sn_m; rewrite plus_n_Sm);
+    constructor).
+  constructor.
+  assert (payable 10) as H4.
+  do 2 (
+    rewrite plus_n_O;
+    do 5 (rewrite plus_Sn_m; rewrite plus_n_Sm);
+    constructor).
+  constructor.
+  cut (forall m:nat, 8 <= m <= n -> payable m).
+  intros H5.
+  apply H5; split; auto.
+  induction n.
+  apply False_ind, le_Sn_0 with (n := 7); auto.
+  (* FIXME: FINISH *)
+  admit.
+Qed.
