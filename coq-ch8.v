@@ -2162,6 +2162,24 @@ Inductive payable : nat -> Prop :=
   | inc_5_pay :
       forall n:nat, payable n -> payable (n + 5).
 
+Lemma between_8_10:
+  forall n:nat, 
+  8 <= n <= 10 -> (n = 8) \/ (n = 9) \/ (n = 10).
+Proof.
+  intros n [H1 H2].
+  destruct H1.
+  auto.
+  destruct H1.
+  auto.
+  destruct H1.
+  auto.
+  cut (m < 8).
+  intros H3.
+  apply False_ind.
+  apply lt_not_le with (m := 8) (n := m); auto.
+  unfold lt; do 2 apply le_S_n; auto.
+Qed.  
+
 Lemma ex_8_29:
   forall n:nat, 8 <= n -> payable n.
 Proof.
@@ -2186,9 +2204,29 @@ Proof.
   constructor.
   cut (forall m:nat, 8 <= m <= n -> payable m).
   intros H5.
-  apply H5; split; auto.
-  induction n.
-  apply False_ind, le_Sn_0 with (n := 7); auto.
+  apply H5 with (m := n).
+  split; [exact H1 | apply le_n].
+  induction H1.
+  intros m [H5 H6].
+  cut (m = 8).
+  intros H7; rewrite H7; auto.
+  apply le_antisym; auto.
+  cut (S m <= 10 \/ 10 < S m).
+  intros [H5 | H6].
+  intros m0 H7.
+  cut (8 <= m0 <= 10).
+  intros H8.
+  cut (m0 = 8 \/ m0 = 9 \/ m0 = 10).
+  intros [H9 | [H10 | H11]].
+  rewrite H9; auto.
+  rewrite H10; auto.
+  rewrite H11; auto.
+  apply between_8_10; auto.
+  split.
+  apply H7.
+  apply le_trans with (m := S m).
+  apply H7.
+  apply H5.
   (* FIXME: FINISH *)
   admit.
 Qed.
