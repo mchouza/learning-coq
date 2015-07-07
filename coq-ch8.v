@@ -2162,71 +2162,108 @@ Inductive payable : nat -> Prop :=
   | inc_5_pay :
       forall n:nat, payable n -> payable (n + 5).
 
-Lemma between_8_10:
-  forall n:nat, 
-  8 <= n <= 10 -> (n = 8) \/ (n = 9) \/ (n = 10).
-Proof.
-  intros n [H1 H2].
-  destruct H1.
-  auto.
-  destruct H1.
-  auto.
-  destruct H1.
-  auto.
-  cut (m < 8).
-  intros H3.
-  apply False_ind.
-  apply lt_not_le with (m := 8) (n := m); auto.
-  unfold lt; do 2 apply le_S_n; auto.
-Qed.  
-
 Lemma ex_8_29:
   forall n:nat, 8 <= n -> payable n.
 Proof.
-  intros n H1.
-  assert (payable 8) as H2.
+  (* we first transform the goal to do strong
+     induction *)
+  intros n.
+  cut (forall m, 8 <= m <= n -> payable m).
+
+  (* if we have the strong form, it's easy to
+     prove the weak *)
+  intros H1 H2.
+  apply H1.
+  split; [exact H2 | apply le_n].
+
+  (* now we can start our induction over n *)
+  induction n.
+
+  (* the base case is obviously uninteresting *)
+  intros m [H1 H2].
+  cut (8 <= 0).
+  intros H3.
+  apply False_ind, le_Sn_O with (n := 7); auto.
+  apply le_trans with (m := m); auto.
+
+  intros m [H1 H2].
+  (* we will now consider two cases:
+     - base (S n <= 10).
+     - inductive. *)
+  cut (S n <= 10 \/ 10 < S n).
+  intros [H3 | H4].
+
+  (* this is just case analysis plus applying
+     the constructors *)
+  destruct H1.
   rewrite plus_n_O.
-  do 3 (rewrite plus_Sn_m; rewrite plus_n_Sm).
+  do 3 rewrite plus_Sn_m, plus_n_Sm.
   constructor.
-  rewrite plus_n_O, plus_comm.
-  constructor; constructor.
-  assert (payable 9) as H3.
+  rewrite plus_n_O.
+  do 5 rewrite plus_Sn_m, plus_n_Sm.
+  constructor.
+  constructor.
+  destruct H1.
   do 3 (
     rewrite plus_n_O;
-    do 3 (rewrite plus_Sn_m; rewrite plus_n_Sm);
-    constructor).
+    do 3 rewrite plus_Sn_m, plus_n_Sm;
+    constructor ).
   constructor.
-  assert (payable 10) as H4.
+  destruct H1.
   do 2 (
     rewrite plus_n_O;
-    do 5 (rewrite plus_Sn_m; rewrite plus_n_Sm);
-    constructor).
+    do 5 rewrite plus_Sn_m, plus_n_Sm;
+    constructor ).
   constructor.
-  cut (forall m:nat, 8 <= m <= n -> payable m).
+
+  (* now we need to stop the destruction by
+     proving we were exhaustive *)
+  cut (m < m).
   intros H5.
-  apply H5 with (m := n).
-  split; [exact H1 | apply le_n].
-  induction H1.
-  intros m [H5 H6].
-  cut (m = 8).
-  intros H7; rewrite H7; auto.
-  apply le_antisym; auto.
-  cut (S m <= 10 \/ 10 < S m).
-  intros [H5 | H6].
-  intros m0 H7.
-  cut (8 <= m0 <= 10).
-  intros H8.
-  cut (m0 = 8 \/ m0 = 9 \/ m0 = 10).
-  intros [H9 | [H10 | H11]].
-  rewrite H9; auto.
-  rewrite H10; auto.
-  rewrite H11; auto.
-  apply between_8_10; auto.
+  apply False_ind, lt_irrefl with (n := m);
+    auto.
+  unfold lt.
+  apply le_trans with (m := 8).
+  do 2 apply le_S_n.
+  apply le_trans with (m := S n); auto.
+  auto.
+
+  (* if we prove that we have payable (S n),
+     it's easy to show we are done *)
+  cut (payable (S n)).
+  intros H6.
+  cut (m < S n \/ m = S n).
+  intros [H7 | H8].
+  apply IHn; split; auto.
+  apply le_S_n; auto.
+  rewrite H8; auto.
+  apply le_lt_or_eq; auto.
+
+  (* if we prove that (S n) - 3 falls in the
+     right range, we are done *)
+  cut (8 <= (S n) - 3 <= n).
+  intros [H5 H6].
+  rewrite le_plus_minus with (n := 3), plus_comm.
+  constructor.
+  apply IHn; split; auto.
+  apply le_trans with (m := 11).
+  do 8 apply le_S; apply le_n.
+  auto.
+
+  (* so we need to prove that inequality *)
   split.
-  apply H7.
-  apply le_trans with (m := S m).
-  apply H7.
-  apply H5.
-  (* FIXME: FINISH *)
-  admit.
+
+  (* this is the "hard" one *)
+  apply plus_le_reg_l with (p := 3).
+  rewrite <-le_plus_minus.
+  simpl; auto.
+  apply le_trans with (m := 11).
+  do 8 apply le_S; apply le_n.
+  auto.
+
+  (* this one is easier *)
+  simpl; apply le_minus.
+
+  (* now we just need to justify the split *)
+  apply le_or_lt.  
 Qed.
