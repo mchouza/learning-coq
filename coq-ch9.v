@@ -28,3 +28,37 @@ Lemma ex_9_1:
 Proof.
   induction y; simpl; auto.
 Qed.
+
+(** Exercise 9.2 **)
+
+(* Given *)
+
+Require Import ZArith.
+
+Open Scope Z_scope.
+
+Variable div_pair: 
+  forall a b:Z, 0 < b ->
+  { p:Z*Z | a = (fst p)*b + snd p /\
+            0 <= snd p < b }.
+
+Definition div_pair' 
+  (a:Z)(x:{ b:Z | 0 < b }): Z*Z :=
+  match x with
+  | exist b h => 
+      let (v, _) := div_pair a b h in v
+  end.
+
+(* To do *)
+
+Definition gt0 (a:Z) := (0 < a).
+
+Definition div_pair''
+  (a:Z)(x:{ b:Z | 0 < b }) :=
+  match x with
+  | exist _ h =>
+      div_pair a (extract Z gt0 x)
+  end.  
+
+Check div_pair''.
+
