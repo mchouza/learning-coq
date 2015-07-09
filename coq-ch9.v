@@ -185,3 +185,32 @@ Proof.
   simpl in IHn1.
   rewrite <-plus_n_Sm; simpl; auto.
 Qed.
+
+(** Exercise 9.8 **)
+
+Fixpoint fib (n:nat) :=
+  match n with
+  | 0 => 1
+  | 1 => 1
+  | S p => (fib p) + match p with
+                     | 0 => 1
+                     | S q => fib q
+                     end
+  end.
+
+Compute (fib 5).
+Compute (fib 10).
+
+Fixpoint fib' (n:nat) :=
+  match n with
+  | 0 => (1, 1)
+  | S p => let (fp, f) := fib' p in
+           (f, fp + f)
+  end.
+
+Compute (fib' 5).
+Compute (fib' 10).
+
+Lemma ex_9_8:
+  forall n:nat,
+  (fib n, fib (S n)) = fib' n.
