@@ -72,3 +72,31 @@ Definition sig_rec_simple
   end.
 
 Check sig_rec_simple.
+
+Close Scope Z_scope.
+
+(** Exercise 9.4 **)
+
+Definition S_O :=
+  fun (n:nat) (H:S n = 0) =>
+  O_S n (eq_sym H).
+
+SearchAbout S.
+
+Definition conv_S_eq_dec (x y:nat)
+(ed:{x=y}+{x<>y}): {S x=S y}+{S x<>S y} :=
+  match ed with
+  | left eqxy =>
+      left _ (eq_S x y eqxy)
+  | right ineqxy =>
+      right _ (not_eq_S x y ineqxy)
+  end.
+
+Fixpoint eq_dec_nat (x y:nat): {x=y}+{x<>y} :=
+  match x, y return {x=y}+{x<>y} with
+  | 0, 0 => left _ (eq_refl 0)
+  | S u, 0 => right _ (S_O u)
+  | 0, S v => right _ (O_S v)
+  | S u, S v =>
+      conv_S_eq_dec u v (eq_dec_nat u v)
+  end.
