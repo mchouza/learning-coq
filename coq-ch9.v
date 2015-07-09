@@ -149,3 +149,39 @@ Proof.
   split; [auto | split; auto].
   simpl; auto with arith.
 Qed.
+
+(** Exercise 9.7 **)
+
+(* Given *)
+
+Fixpoint div2 (n:nat) : nat :=
+  match n with
+  | 0 => 0
+  | 1 => 0
+  | S (S p) => S (div2 p)
+  end.
+
+(* To do *)
+
+Fixpoint mod2 (n:nat) :=
+  match n with
+  | 0 => 0
+  | 1 => 1
+  | S (S m) => mod2 m
+  end.
+
+Theorem ex_9_7:
+  forall n:nat, n = 2 * (div2 n) + (mod2 n).
+Proof.
+  intros n.
+  cut (n = 2 * (div2 n) + (mod2 n) /\
+       S n = 2 * (div2 (S n)) + (mod2 (S n))).
+  tauto.
+  induction n.
+  simpl; tauto.
+  destruct IHn as [IHn1 IHn2].
+  split; auto.
+  simpl; apply f_equal.
+  simpl in IHn1.
+  rewrite <-plus_n_Sm; simpl; auto.
+Qed.
