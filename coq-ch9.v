@@ -211,6 +211,55 @@ Fixpoint fib' (n:nat) :=
 Compute (fib' 5).
 Compute (fib' 10).
 
+Lemma fib_prop:
+  forall n:nat,
+  fib n + fib (S n) = fib (S (S n)).
+Proof.
+  intros n.
+  simpl; apply plus_comm.
+Qed.
+
+Lemma fib'_prop1:
+  forall n:nat,
+  fst (fib' (S n)) = snd (fib' n).
+Proof.
+  intros n.
+  simpl.
+  elim (fib' n).
+  auto.
+Qed.
+
+Lemma fib'_prop2:
+  forall n:nat,
+  snd (fib' (S n)) =
+  fst (fib' n) + snd (fib' n).
+Proof.
+  intros n.
+  simpl.
+  elim (fib' n).
+  simpl; auto.
+Qed.
+
+Lemma fib'_prop3:
+  forall n:nat,
+  fst (fib' (S (S n))) =
+  fst (fib' (S n)) + fst (fib' n).
+Proof.
+  intros n.
+  rewrite fib'_prop1, fib'_prop2, fib'_prop1.
+  apply plus_comm.
+Qed.
+
+Lemma fib'_prop4:
+  forall n:nat,
+  snd (fib' (S (S n))) =
+  snd (fib' (S n)) + snd (fib' n).
+Proof.
+  intros n.
+  repeat rewrite <-fib'_prop1.
+  apply fib'_prop3.
+Qed.
+
 Lemma ex_9_8:
   forall n:nat,
   (fib n, fib (S n)) = fib' n.
