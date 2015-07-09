@@ -120,3 +120,32 @@ Compute count_occurrences (1::2::3::2::nil) 1.
 Compute count_occurrences (1::2::3::2::nil) 2.
 Compute count_occurrences (1::2::3::2::nil) 3.
 Compute count_occurrences (1::2::3::2::nil) 5.
+
+(** Exercise 9.6 **)
+
+Fixpoint div3 (n:nat) :=
+  match n with
+  | 0 => 0
+  | 1 => 0
+  | 2 => 0
+  | S (S (S p)) => S (div3 p)
+  end.
+
+Compute div3 0.
+Compute div3 2.
+Compute div3 100.
+Compute div3 101.
+Compute div3 102.
+
+Lemma div3_le: forall n:nat, div3 n <= n.
+Proof.
+  intros n.
+  cut (div3 n <= n /\ div3 (S n) <= S n /\
+       div3 (S (S n)) <= S (S n)).
+  tauto.
+  induction n.
+  simpl; auto.
+  destruct IHn as [H1 [H2 H3]].
+  split; [auto | split; auto].
+  simpl; auto with arith.
+Qed.
