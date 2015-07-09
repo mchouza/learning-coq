@@ -327,3 +327,42 @@ Proof.
   destruct IHn as [IHn1 [IHn2 [IHn3 IHn4]]].
   auto.
 Qed.
+
+(** Exercise 9.10 **)
+
+Theorem fib_ind:
+  forall P:nat->Prop, P 0 -> P 1 ->
+  (forall n:nat,
+   P n -> P (S n) -> P (S (S n))) ->
+  forall n:nat, P n.
+Proof.
+  intros P P0 P1 Hrec n.
+  cut (P n /\ P (S n)).
+  tauto.
+  induction n.
+  auto.
+  destruct IHn as [IHn1 IHn2].
+  auto.
+Qed.
+
+Compute fib (3 + 2 + 2).
+Compute (fib (3 + 1)) * (fib (2 + 1)) +
+        (fib 3) * (fib 2).
+
+Lemma fib_prod:
+  forall (n p:nat),
+  fib (S(S(n + p))) =
+  (fib (S n)) * (fib (S p)) +
+  (fib n) * (fib p).
+Proof.
+  intros n.
+  elim n using fib_ind.
+  simpl; auto.
+  intros p.
+  simpl; repeat rewrite <-plus_n_O.
+  rewrite plus_comm, plus_assoc; auto.
+  clear n.
+  intros n IHn1 IHn2 p.
+  (* FIXME: FINISH! *)
+  admit.
+Qed.
