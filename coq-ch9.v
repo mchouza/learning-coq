@@ -100,3 +100,23 @@ Fixpoint eq_dec_nat (x y:nat): {x=y}+{x<>y} :=
   | S u, S v =>
       conv_S_eq_dec u v (eq_dec_nat u v)
   end.
+
+(** Exercise 9.5 **)
+
+Require Import List.
+
+Fixpoint count_occurrences
+  (l:list nat) (n:nat): nat :=
+  match l with
+  | nil => 0
+  | m :: l' =>
+      match eq_dec_nat n m with
+      | left _ => S (count_occurrences l' n)
+      | right _ => count_occurrences l' n
+      end
+  end.
+
+Compute count_occurrences (1::2::3::2::nil) 1.
+Compute count_occurrences (1::2::3::2::nil) 2.
+Compute count_occurrences (1::2::3::2::nil) 3.
+Compute count_occurrences (1::2::3::2::nil) 5.
