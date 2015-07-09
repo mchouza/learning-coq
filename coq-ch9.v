@@ -62,3 +62,13 @@ Definition div_pair''
 
 Check div_pair''.
 
+(** Exercise 9.3 *)
+
+Definition sig_rec_simple
+  (A:Set) (P:A->Prop) (B:Set)
+  (h:forall x:A, P x -> B) (p:sig P) :=
+  match p with
+  | exist a q => h a q
+  end.
+
+Check sig_rec_simple.
