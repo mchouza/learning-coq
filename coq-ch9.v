@@ -294,3 +294,36 @@ Proof.
   elim (fib' n).
   auto.
 Qed.
+
+(** Exercise 9.9 **)
+
+Theorem nat_3_ind:
+  forall P:nat->Prop,
+  P 0 -> P 1 -> P 2 ->
+  (forall n:nat, P n -> P (S (S (S n)))) ->
+  forall n:nat, P n.
+Proof.
+  intros P P0 P1 P2 Hrec n.
+  cut (P n /\ P (S n) /\ P (S (S n))).
+  tauto.
+  induction n.
+  auto.
+  destruct IHn as [IHn1 [IHn2 IHn3]].
+  auto.
+Qed.
+
+Theorem nat_4_ind:
+  forall P:nat->Prop,
+  P 0 -> P 1 -> P 2 -> P 3 ->
+  (forall n:nat, P n -> P (S (S (S (S n))))) ->
+  forall n:nat, P n.
+Proof.
+  intros P P0 P1 P2 P3 Hrec n.
+  cut (P n /\ P (S n) /\ P (S (S n)) /\
+       P (S (S (S n)))).
+  tauto.
+  induction n.
+  auto.
+  destruct IHn as [IHn1 [IHn2 [IHn3 IHn4]]].
+  auto.
+Qed.
