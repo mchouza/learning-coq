@@ -260,6 +260,37 @@ Proof.
   apply fib'_prop3.
 Qed.
 
-Lemma ex_9_8:
+Lemma fib_fib'_fst_eq:
+  forall n:nat, fst (fib' n) = fib n.
+Proof.
+  intros n.
+  cut (fst (fib' n) = fib n /\
+       fst (fib' (S n)) = fib (S n)).
+  tauto.
+  induction n.
+  simpl; auto.
+  destruct IHn as [IHn1 IHn2].
+  split; auto.
+  rewrite <-fib_prop.
+  rewrite fib'_prop3.
+  rewrite IHn1, IHn2.
+  apply plus_comm.
+Qed.
+
+Lemma fib_fib'_snd_eq:
+  forall n:nat, snd (fib' n) = fib (S n).
+Proof.
+  intros n.
+  rewrite <-fib'_prop1, fib_fib'_fst_eq.
+  auto.
+Qed.
+
+Theorem ex_9_8:
   forall n:nat,
   (fib n, fib (S n)) = fib' n.
+Proof.
+  intros n.
+  rewrite <-fib_fib'_fst_eq, <-fib_fib'_snd_eq.
+  elim (fib' n).
+  auto.
+Qed.
