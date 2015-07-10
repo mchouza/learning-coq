@@ -414,3 +414,95 @@ Qed.
 
 (* ex 9.8 skipped because it's too long *)
 
+(** Exercise 9.12 **)
+
+Definition mult2 (n:nat) := n + n.
+
+(*
+Fixpoint div2_mod2 (n:nat):
+  {q:nat & {r:nat | n = (mult2 q) + r /\
+                    r <= 1}}.
+*)
+(* FIXME: TO BE DONE *)
+
+(** Exercise 9.13 **)
+
+(* Given *)
+
+Fixpoint plus' (n m:nat){struct m} : nat :=
+  match m with
+  | 0 => n
+  | S p => S (plus' n p)
+  end.
+
+(* To do *)
+
+Lemma plus'_assoc:
+  forall n m p:nat,
+  (plus' n (plus' m p)) = (plus' (plus' n m) p).
+Proof.
+  intros n m p.
+  induction p.
+  simpl; auto.
+  simpl.
+  apply f_equal, IHp.
+Qed.
+
+(** Exercise 9.14 **)
+
+(* Given *)
+
+Fixpoint plus'' (n m:nat){struct m} : nat :=
+  match m with
+  | 0 => n
+  | S p => plus'' (S n) p
+  end.
+
+(* To do *)
+
+Lemma plus''_Sn_m:
+  forall n m:nat,
+  plus'' (S n) m = S(plus'' n m).
+Proof.
+  intros n m.
+  generalize n.
+  induction m.
+  simpl; auto.
+  intros n'.
+  simpl.
+  rewrite IHm.
+  auto.
+Qed.
+
+Lemma plus''_assoc:
+  forall n m p:nat,
+  (plus'' n (plus'' m p)) =
+  (plus'' (plus'' n m) p).
+Proof.
+  intros n m p.
+  generalize n m.
+  induction p.
+  simpl; auto.
+  intros n' m'.
+  simpl.
+  rewrite plus''_Sn_m; simpl.
+  repeat rewrite plus''_Sn_m.
+  rewrite IHp; auto.
+Qed.
+
+(** Exercise 9.15 **)
+
+Fixpoint _tr_fib_aux (f1 f2 c:nat) :=
+  match c with
+  | 0 => f1
+  | S d => _tr_fib_aux f2 (f1 + f2) d
+  end.
+
+Definition tail_rec_fib (n:nat) :=
+  _tr_fib_aux 1 1 n.
+
+Compute tail_rec_fib 10.
+
+Lemma trf_equiv:
+  forall n:nat, tail_rec_fib n = fib n.
+(* IN PROGRESS *)
