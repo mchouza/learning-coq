@@ -363,6 +363,16 @@ Proof.
   rewrite plus_comm, plus_assoc; auto.
   clear n.
   intros n IHn1 IHn2 p.
-  (* FIXME: FINISH! *)
-  admit.
+  specialize IHn1 with (p := p).
+  specialize IHn2 with (p := p).
+  rewrite <-fib_prop.
+  repeat rewrite plus_Sn_m in *.
+  rewrite IHn1, IHn2.
+  repeat rewrite <-fib_prop.
+  repeat rewrite mult_plus_distr_r.
+  repeat rewrite <-plus_assoc.
+  apply f_equal.
+  rewrite plus_comm, <-plus_assoc, <-plus_assoc.
+  do 2 apply f_equal.
+  rewrite plus_comm; auto.
 Qed.
