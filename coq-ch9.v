@@ -376,3 +376,41 @@ Proof.
   do 2 apply f_equal.
   rewrite plus_comm; auto.
 Qed.
+
+(** Exercise 9.11 **)
+
+Lemma div3_le': forall n:nat, div3 n <= n.
+Proof.
+  intros n.
+  elim n using nat_3_ind; simpl; auto.
+  intros n' Hrec.
+  do 2 apply le_S; apply le_n_S; exact Hrec.
+Qed.
+
+Theorem nat_2_ind:
+  forall P:nat->Prop,
+  P 0 -> P 1 ->
+  (forall n:nat, P n -> P (S (S n))) ->
+  forall n:nat, P n.
+Proof.
+  intros P P0 P1 Hrec n.
+  cut (P n /\ P (S n)).
+  tauto.
+  induction n.
+  auto.
+  destruct IHn as [IHn1 IHn2].
+  auto.
+Qed.
+
+Theorem ex_9_7':
+  forall n:nat, n = 2 * (div2 n) + (mod2 n).
+Proof.
+  intros n.
+  elim n using nat_2_ind; simpl; auto.
+  intros n' Hrec.
+  rewrite <-plus_n_Sm, plus_Sn_m.
+  do 2 apply f_equal; exact Hrec.
+Qed.
+
+(* ex 9.8 skipped because it's too long *)
+
