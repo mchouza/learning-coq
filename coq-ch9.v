@@ -492,17 +492,55 @@ Qed.
 
 (** Exercise 9.15 **)
 
-Fixpoint _tr_fib_aux (f1 f2 c:nat) :=
+Fixpoint _trf_aux (f1 f2 c:nat) :=
   match c with
   | 0 => f1
-  | S d => _tr_fib_aux f2 (f1 + f2) d
+  | S d => _trf_aux f2 (f1 + f2) d
   end.
 
 Definition tail_rec_fib (n:nat) :=
-  _tr_fib_aux 1 1 n.
+  _trf_aux 1 1 n.
 
 Compute tail_rec_fib 10.
 
+Lemma trf_linear:
+  forall n a b c d:nat,
+  _trf_aux (a+b) (c+d) n =
+  _trf_aux a c n + _trf_aux b d n.
+Proof.
+  induction n.
+  simpl; auto.
+  intros a b c d.
+  simpl.
+  rewrite <-IHn.
+  repeat rewrite plus_assoc.
+  rewrite plus_comm with (n := a + b) (m := c).
+  rewrite plus_assoc.
+  rewrite plus_comm with (n := c) (m := a).
+  auto.
+Qed.
+
+Lemma trf_step:
+  forall n a b:nat,
+  _trf_aux a b (S n) = _trf_aux b (a + b) n.
+Proof.
+  auto.
+Qed.
+
 Lemma trf_equiv:
   forall n:nat, tail_rec_fib n = fib n.
-(* IN PROGRESS *)
+Proof.
+  intros n.
+  elim n using fib_ind.
+  auto.
+  auto.
+  clear n.
+  intros n Hrec1 Hrec2.
+  unfold tail_rec_fib in *.
+  do 2 rewrite trf_step.
+  rewrite <-fib_prop.
+  rewrite trf_step in Hrec2.
+  rewrite <-Hrec1, <-Hrec2.
+  rewrite trf_linear.
+  auto.
+Qed.
