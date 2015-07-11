@@ -418,12 +418,49 @@ Qed.
 
 Definition mult2 (n:nat) := n + n.
 
-(*
+Definition d2m2_0:
+  {q:nat & {r:nat | 0 = (mult2 q) + r /\
+                    r <= 1}}.
+  exists 0, 0.
+  simpl; auto.
+Defined.
+
+Definition d2m2_1:
+  {q:nat & {r:nat | 1 = (mult2 q) + r /\
+                    r <= 1}}.
+  exists 0, 1.
+  simpl; auto.
+Defined.
+
+Lemma d2m2_rec:
+  forall n:nat,
+  {q:nat & {r:nat | n = (mult2 q) + r /\
+                    r <= 1}} ->
+  {q:nat & {r:nat | S (S n) = (mult2 q) + r /\
+                    r <= 1}}.
+Proof.
+  intros n [q [r [H1 H2]]].
+  exists (S q), r.
+  split; auto.
+  simpl.
+  rewrite <-plus_n_Sm, plus_Sn_m.
+  do 2 apply f_equal.
+  apply H1.
+Defined.
+
 Fixpoint div2_mod2 (n:nat):
   {q:nat & {r:nat | n = (mult2 q) + r /\
-                    r <= 1}}.
-*)
-(* FIXME: TO BE DONE *)
+                    r <= 1}} :=
+  match n return
+  {q:nat & {r:nat | n = (mult2 q) + r /\
+                    r <= 1}}
+  with
+  | 0 => d2m2_0
+  | 1 => d2m2_1
+  | S (S n) => d2m2_rec n (div2_mod2 n)
+  end.
+
+Compute div2_mod2 3.
 
 (** Exercise 9.13 **)
 
