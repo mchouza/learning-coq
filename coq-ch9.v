@@ -581,3 +581,151 @@ Proof.
   rewrite trf_linear.
   auto.
 Qed.
+
+(** Exercise 9.16 **)
+
+Require Import ZArith.
+
+Open Scope Z_scope.
+
+Definition sqrt_ind_step p s' :=
+  match Zpos p ?=
+        (2 * s' + 1) * (2 * s' + 1) with
+  | Gt => 2 * s' + 1
+  | Eq => 2 * s' + 1
+  | Lt => 2 * s'
+  end.
+
+Fixpoint sqrt (p:positive) :=
+  match p with
+  | xH => 1
+  | xO xH => 1
+  | xI xH => 1
+  | xO (xO p') => sqrt_ind_step p (sqrt p')
+  | xI (xO p') => sqrt_ind_step p (sqrt p')
+  | xO (xI p') => sqrt_ind_step p (sqrt p')
+  | xI (xI p') => sqrt_ind_step p (sqrt p')
+  end.
+
+Lemma z_lt_le:
+  forall a b:Z,
+  a < b + 1 <-> a <= b.
+Proof.
+  intros a b.
+  split.
+  intros H.
+  apply Zlt_succ_r, H.
+  intros H.
+  apply Zle_lt_succ, H.
+Qed.
+
+Lemma z_lt_le_minus_one:
+  forall a b:Z,
+  a < b <-> a <= b + (-1).
+Proof.
+  intros a b.
+  split.
+  intros H.
+  rewrite Zplus_0_r_reverse,
+          <-Zplus_opp_l with (n := 1),
+          Zplus_assoc, z_lt_le in H.
+  exact H.
+  intros H.
+  rewrite Zplus_0_r_reverse,
+          <-Zplus_opp_l with (n := 1),
+          Zplus_assoc, z_lt_le.
+  exact H.
+Qed.
+
+Lemma sqrt_lt:
+  forall a a' s':Z,
+  1 <= a' ->
+  4 * a' <= a < 4 * (a' + 1) ->
+  s' * s' <= a' < (s' + 1) * (s' + 1) ->
+  4 * s' * s' <= a < 4 * (s' + 1) * (s' + 1).
+Proof.
+  intros a a' s' H1 [H2 H3] [H4 H5].
+  split.
+  apply Zle_trans with (m := 4 * a').
+  rewrite <-Zmult_assoc.
+  apply Zmult_le_compat_l; auto.
+  discriminate.
+  auto.
+  rewrite z_lt_le_minus_one in H5, H3.
+  rewrite z_lt_le_minus_one.
+  apply Zle_trans 
+    with (m := 4 * (a' + 1) + -1).
+  auto.
+  apply Zplus_le_compat_r.
+  rewrite <-Zmult_assoc.
+  apply Zmult_le_compat_l.
+  apply Zplus_le_reg_r with (p := -1).
+  rewrite <-Zplus_assoc, Zplus_opp_r, Zplus_0_r.
+  auto.
+  discriminate.
+Qed.
+
+Lemma one_le_pos:
+  forall p:positive, 1 <= Zpos p.
+Proof.
+  intros p.
+  apply Zge_le.
+  apply Pcompare_1.
+Qed.  
+
+Lemma sis_step:
+  forall (p p':positive) (s':Z),
+  4 * (Zpos p') <= Zpos p < 4 * (Zpos p' + 1) ->
+  s' * s' <= Zpos p' < (s' + 1) * (s' + 1) ->
+  let s := sqrt_ind_step p s' in
+  s * s <= Zpos p < (s + 1) * (s + 1).
+Proof.
+  intros p p' s' H1 H2 s.
+  cut ((2 * s' + 1) * (2 * s' + 1) <= Zpos p  \/
+       Zpos p < (2 * s' + 1) * (2 * s' + 1)).
+  intros [H3|H3].
+  cut (s = 2 * s' + 1).
+  intros H4.
+  rewrite H4.
+  split; auto.
+  cut ((2 * s' + 1 + 1) * (2 * s' + 1 + 1) =
+       4 * (s' + 1) * (s' + 1)).
+  intros H5.
+  rewrite H5.
+  cut (4 * s' * s' <= 
+       Zpos p <
+       4 * (s' + 1) * (s' + 1)).
+  tauto.
+  apply sqrt_lt with (a' := Zpos p').
+  apply one_le_pos.
+  auto.
+  auto.
+  cut (1 + 1 = 2).
+  intros H5.
+  rewrite <-Zplus_assoc, H5.
+  rewrite <-Zmult_1_r with (n := 2).
+  rewrite <-Zmult_assoc.
+  rewrite <-Zmult_plus_distr_r.
+  rewrite Zmult_1_l.
+  rewrite Zmult_assoc.
+  rewrite Zmult_comm with (n := 2 * (s' + 1)).
+  cut (2 * 2 = 4).
+  intros H6.
+  rewrite Zmult_assoc, H6.
+  auto.
+  simpl; auto.
+  simpl; auto.
+  unfold s, sqrt_ind_step.
+  assert (Zpos p >=
+          (2 * s' + 1) * (2 * s' + 1)) as H4.
+  apply Zle_ge; auto.
+  unfold Zge in H4.
+  destruct (Zpos p ?=
+            (2 * s' + 1) * (2 * s' + 1)).
+  auto.
+  apply False_ind, H4; auto.
+  auto.
+  (* FIXME: ADD MISSING STEPS *)
+  admit.
+  admit.
+Qed.
