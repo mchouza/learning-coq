@@ -725,7 +725,129 @@ Proof.
   auto.
   apply False_ind, H4; auto.
   auto.
-  (* FIXME: ADD MISSING STEPS *)
-  admit.
-  admit.
+  cut (s = 2 * s').
+  intros H4.
+  rewrite H4.
+  cut (4 * s' * s' <= 
+       Zpos p <
+       4 * (s' + 1) * (s' + 1)).
+  intros [H5 H6].
+  split.
+  rewrite Zmult_assoc.
+  rewrite Zmult_comm with (n := 2 * s').
+  rewrite Zmult_assoc.
+  cut (2 * 2 = 4).
+  intros H7.
+  rewrite H7; auto.
+  simpl; auto.
+  auto.
+  apply sqrt_lt with (a' := Zpos p').
+  apply one_le_pos.
+  auto.
+  auto.
+  unfold s, sqrt_ind_step.
+  unfold Zlt in H3.
+  destruct (Zpos p ?=
+            (2 * s' + 1) * (2 * s' + 1)).
+  discriminate.
+  auto.
+  discriminate.
+  apply Zle_or_lt.
+Qed.
+
+Open Scope positive_scope.
+
+Lemma pos_double_induction:
+  forall (P:positive->Prop),
+  P 1 -> P 2 -> P 3 ->
+  (forall q:positive, P q -> 
+   P (q~0~0) /\ P q~0~1 /\ P q~1~0 /\ P q~1~1) ->
+  forall p:positive, P p.
+Proof.
+  intros P P1 P2 P3 Hrec p.
+  cut (P p /\ P p~0 /\ P p~1).
+  tauto.
+  induction p.
+  split.
+  apply IHp.
+  apply Hrec.
+  apply IHp.
+  split.
+  apply IHp.
+  cut (P p -> P p~0~0 /\ P p~0~1).
+  tauto.
+  intros Pp.
+  split; apply Hrec; auto.
+  auto.
+Qed.
+
+Lemma two_bits_bounds:
+  forall p:positive,
+  p~0~0 = 4 * p /\
+  p~0~1 = 4 * p + 1 /\
+  p~1~0 = 4 * p + 2 /\
+  p~1~1 = 4 * p + 3.
+Proof.
+  intros p.
+  elim p using pos_double_induction; simpl; auto.
+  intros q.
+  split; simpl; auto.
+  split; simpl; auto.
+Qed.
+
+Close Scope positive_scope.
+
+Lemma multiply_out_pos:
+  forall p q:positive,
+  Zpos (p * q) = Zpos p * Zpos q.
+Proof.
+  intros p q.
+  simpl; auto.
+Qed.
+
+Lemma ms_out_pos:
+  forall p q r:positive,
+  Zpos (p * q + r) = Zpos p * Zpos q + Zpos r.
+Proof.
+  intros p q r.
+  simpl; auto.
+Qed.
+
+Lemma sqrt_works:
+  forall p:positive,
+  sqrt p * sqrt p <= Zpos p <
+  (sqrt p + 1) * (sqrt p + 1).
+Proof.
+  intros p.
+  elim p using pos_double_induction.
+  simpl; omega.
+  simpl; omega.
+  simpl; omega.
+  intros q Hrec.
+  cut (q~0~0 = 4 * q /\
+       q~0~1 = 4 * q + 1 /\
+       q~1~0 = 4 * q + 2 /\
+       q~1~1 = 4 * q + 3)%positive.
+  intros [Q00 [Q01 [Q10 Q11]]].
+  split; simpl.
+  apply sis_step with (p' := q).
+  rewrite Q00, multiply_out_pos.
+  omega.
+  auto.
+  split; simpl.
+  apply sis_step with (p' := q).
+  rewrite Q01, ms_out_pos.
+  omega.
+  auto.
+  split; simpl.
+  apply sis_step with (p' := q).
+  rewrite Q10, ms_out_pos.
+  omega.
+  auto.
+  simpl.
+  apply sis_step with (p' := q).
+  rewrite Q11, ms_out_pos.
+  omega.
+  auto.
+  apply two_bits_bounds.
 Qed.
