@@ -851,3 +851,16 @@ Proof.
   auto.
   apply two_bits_bounds.
 Qed.
+
+Definition sqrt_spec:
+  forall p:positive,
+  {s:Z &{r:Z | Zpos p = s * s + r /\
+               s * s <= Zpos p < (s+1)*(s+1)}}.
+  intros p.
+  exists (sqrt p).
+  exists (Zpos p - sqrt p * sqrt p).
+  split.
+  symmetry.
+  apply Zplus_minus.
+  apply sqrt_works.
+Qed.
