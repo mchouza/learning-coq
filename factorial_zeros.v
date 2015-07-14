@@ -21,7 +21,41 @@ Fixpoint aux_div n m a :=
       end
   end.
 
-Definition div (n m:nat) := aux_div n m n.
+Definition div (n m:nat) := aux_div n m (S n).
+
+Lemma nat_strong_ind (P:nat->Prop):
+  P 0 ->
+  (forall n m:nat, (m < n -> P m) -> P n) ->
+  (forall n:nat, P n).
+Proof.
+  intros P0 Hrec n.
+  cut (forall n m:nat, m < n -> P m).
+  intros Hcut.
+  apply Hcut with (n := S n).
+  auto.
+  clear n.
+  induction n.
+  intros m m_imp.
+  apply False_ind, lt_n_O with (n := m), m_imp.
+  intros m mainH.
+  cut (m < n \/ m = n).
+  intros [baseH | stepH].
+  apply IHn, baseH.
+  rewrite stepH.
+  apply Hrec with (m := m), IHn.
+  apply le_lt_or_eq.
+  apply le_S_n, mainH.
+Qed.
+
+Lemma div_works:
+  forall n m:nat,
+  m <> 0 ->
+  exists q:nat, div n m = Some q /\
+  m * q <= n < m * S q.
+Proof.
+  (* FIXME: PROVE *)
+  admit.
+Qed.
 
 Fixpoint sum_series
   (f:nat->option nat) (a n:nat) :=
