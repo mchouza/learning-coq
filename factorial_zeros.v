@@ -47,6 +47,28 @@ Proof.
   apply le_S_n, mainH.
 Qed.
 
+Lemma S_exchange:
+  forall a b:nat,
+  S a + b * S a = S b + a * S b.
+Proof.
+  intros a b.
+  rewrite mult_comm with (n := b),
+          mult_comm with (n := a).
+  simpl.
+  repeat rewrite plus_assoc.
+  rewrite mult_comm, plus_comm with (n := a).
+  reflexivity.
+Qed.
+
+Lemma not_lt_le:
+  forall n m:nat, ~ n < m -> m <= n.
+Proof.
+  intros n m H.
+  cut (m <= n \/ n < m).
+  tauto.
+  apply le_or_lt.
+Qed.
+
 Lemma div_works:
   forall n d:nat,
   d <> 0 ->
@@ -89,10 +111,19 @@ Proof.
   cut (exists q':nat,
        aux_div (n - S d') (S d') k' = Some q' /\
        S d' * q' <= n - S d' < S d' * S q').
-  intros [q' [HrecI1 HrecI2]].
+  intros [q' [HrecI1 [HrecI2 HrecI3]]].
   exists (S q').
   rewrite HrecI1.
   split; auto.
+  split.
+  cut (S d' * q' + S d' <= n).
+  intros n_lo_bound.
+  rewrite S_exchange, mult_comm, plus_comm; auto.
+  rewrite le_plus_minus 
+    with (n := S d') (m := n).
+  rewrite plus_comm with (n := S d').
+  apply plus_le_compat_r; auto.
+  apply not_lt_le; auto.
   (* FIXME: PROVE *)
   admit.
   admit.
