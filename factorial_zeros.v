@@ -25,7 +25,8 @@ Definition div (n m:nat) := aux_div n m (S n).
 
 Lemma nat_strong_ind (P:nat->Prop):
   P 0 ->
-  (forall n m:nat, (m < n -> P m) -> P n) ->
+  (forall n:nat,
+   (forall m:nat, m < n -> P m) -> P n) ->
   (forall n:nat, P n).
 Proof.
   intros P0 Hrec n.
@@ -42,7 +43,7 @@ Proof.
   intros [baseH | stepH].
   apply IHn, baseH.
   rewrite stepH.
-  apply Hrec with (m := m), IHn.
+  apply Hrec with (n := n), IHn.
   apply le_lt_or_eq.
   apply le_S_n, mainH.
 Qed.
@@ -67,6 +68,48 @@ Proof.
   cut (m <= n \/ n < m).
   tauto.
   apply le_or_lt.
+Qed.
+
+Lemma ne_0_ge_1:
+  forall n:nat, n <> 0 -> 1 <= n.
+Proof.
+  intros n.
+  induction n.
+  intros O_ne_O.
+  apply False_ind, O_ne_O; reflexivity.
+  induction n.
+  intros _; apply le_n.
+  intros _.
+  apply le_S, IHn.
+  discriminate.
+Qed.
+
+Lemma sub_1_is_lt:
+  forall n:nat, n <> 0 -> n - 1 < n.
+Proof.
+  intros n n_ne_zero.
+  unfold lt.
+  rewrite minus_Sn_m; simpl.
+  rewrite minus_n_O; auto.
+  apply ne_0_ge_1; auto.
+Qed.
+
+Lemma sub_is_lt:
+  forall n m:nat,
+  n <> 0 -> m <> 0 -> n - m < n.
+Proof.
+  intros n m n_ne_0 m_ne_0.
+  induction m.
+  apply False_ind, m_ne_0; reflexivity.
+  induction m.
+  unfold lt.
+  rewrite minus_Sn_m.
+  simpl; rewrite <-minus_n_O; apply le_n.
+  induction n.
+  apply False_ind, n_ne_0; reflexivity.
+  apply ne_0_ge_1; auto.
+  (* FIXME: FINISH *)
+  admit.
 Qed.
 
 Lemma div_works:
@@ -94,7 +137,7 @@ Proof.
   rewrite mult_0_r; split; split;
     [auto | apply lt_0_Sn].
   clear n.
-  intros n m Hrec.
+  intros n Hrec.
   intros d k d_ne_0 k_gt_n.
   destruct d as [|d'], k as [|k'].
   apply False_ind; auto.
@@ -124,6 +167,24 @@ Proof.
   rewrite plus_comm with (n := S d').
   apply plus_le_compat_r; auto.
   apply not_lt_le; auto.
+  cut (n - S d' + S d' < S d' * S q' + S d').
+  intros n_hi_bound.
+  rewrite <-le_plus_minus_r
+    with (n := S d') (m := n).
+  rewrite plus_comm.
+  rewrite <-plus_Sn_m, S_exchange.
+  rewrite plus_comm with (n := S d').
+  rewrite mult_comm; auto.
+  apply not_lt_le; auto.
+  apply plus_lt_compat_r; auto.
+  apply Hrec.
+  assert (n - S d' < n) as sub_is_lt.
+  apply lt_minus.
+  apply not_lt_le; auto.
+  apply lt_O_Sn.
+  auto.
+  auto.
+  apply lt_le_trans with (m := n).
   (* FIXME: PROVE *)
   admit.
   admit.
