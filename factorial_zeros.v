@@ -48,12 +48,53 @@ Proof.
 Qed.
 
 Lemma div_works:
-  forall n m:nat,
-  m <> 0 ->
-  exists q:nat, div n m = Some q /\
-  m * q <= n < m * S q.
+  forall n d:nat,
+  d <> 0 ->
+  exists q:nat, div n d = Some q /\
+  d * q <= n < d * S q.
 Proof.
+  unfold div.
+  cut (forall n d k:nat,
+       d <> 0 -> n < k ->
+       exists q:nat,
+       aux_div n d k = Some q /\
+       d * q <= n < d * S q).
+  intros Hcut n d d_ne_0.
+  apply Hcut with (k := S n); auto.
+  intros n.
+  elim n using nat_strong_ind.
+  intros d k d_ne_0 k_gt_0.
+  destruct d as [|d'], k as [|k'].
+  apply False_ind; auto.
+  apply False_ind; auto.
+  apply False_ind, lt_irrefl with (n := 0); auto.
+  exists 0; simpl.
+  rewrite mult_0_r; split; split;
+    [auto | apply lt_0_Sn].
+  clear n.
+  intros n m Hrec.
+  intros d k d_ne_0 k_gt_n.
+  destruct d as [|d'], k as [|k'].
+  apply False_ind; auto.
+  apply False_ind; auto.
+  apply False_ind, lt_n_O with (n := n); auto.
+  simpl.
+  destruct lt_dec with (n := n) (m := (S d'))
+           as [n_lt_d | n_ge_d].
+  exists 0.
+  rewrite mult_0_r, plus_0_l, plus_0_l,
+          mult_1_r.
+  split; split; auto.
+  apply le_0_n.
+  cut (exists q':nat,
+       aux_div (n - S d') (S d') k' = Some q' /\
+       S d' * q' <= n - S d' < S d' * S q').
+  intros [q' [HrecI1 HrecI2]].
+  exists (S q').
+  rewrite HrecI1.
+  split; auto.
   (* FIXME: PROVE *)
+  admit.
   admit.
 Qed.
 
