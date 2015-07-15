@@ -70,48 +70,6 @@ Proof.
   apply le_or_lt.
 Qed.
 
-Lemma ne_0_ge_1:
-  forall n:nat, n <> 0 -> 1 <= n.
-Proof.
-  intros n.
-  induction n.
-  intros O_ne_O.
-  apply False_ind, O_ne_O; reflexivity.
-  induction n.
-  intros _; apply le_n.
-  intros _.
-  apply le_S, IHn.
-  discriminate.
-Qed.
-
-Lemma sub_1_is_lt:
-  forall n:nat, n <> 0 -> n - 1 < n.
-Proof.
-  intros n n_ne_zero.
-  unfold lt.
-  rewrite minus_Sn_m; simpl.
-  rewrite minus_n_O; auto.
-  apply ne_0_ge_1; auto.
-Qed.
-
-Lemma sub_is_lt:
-  forall n m:nat,
-  n <> 0 -> m <> 0 -> n - m < n.
-Proof.
-  intros n m n_ne_0 m_ne_0.
-  induction m.
-  apply False_ind, m_ne_0; reflexivity.
-  induction m.
-  unfold lt.
-  rewrite minus_Sn_m.
-  simpl; rewrite <-minus_n_O; apply le_n.
-  induction n.
-  apply False_ind, n_ne_0; reflexivity.
-  apply ne_0_ge_1; auto.
-  (* FIXME: FINISH *)
-  admit.
-Qed.
-
 Lemma div_works:
   forall n d:nat,
   d <> 0 ->
@@ -185,9 +143,10 @@ Proof.
   auto.
   auto.
   apply lt_le_trans with (m := n).
-  (* FIXME: PROVE *)
-  admit.
-  admit.
+  apply lt_minus.
+  apply not_lt_le; auto.
+  apply lt_0_Sn.
+  apply lt_n_Sm_le; auto.
 Qed.
 
 Fixpoint sum_series
