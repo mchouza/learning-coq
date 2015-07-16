@@ -23,6 +23,12 @@ Fixpoint aux_div n m a :=
 
 Definition div (n m:nat) := aux_div n m (S n).
 
+Definition rem (n m:nat) :=
+  match div n m with
+  | None => None
+  | Some q => Some (n - q * m)
+  end.
+
 Lemma nat_strong_ind (P:nat->Prop):
   P 0 ->
   (forall n:nat,
@@ -68,6 +74,27 @@ Proof.
   cut (m <= n \/ n < m).
   tauto.
   apply le_or_lt.
+Qed.
+
+Lemma minus_to_plus:
+  forall n m p:nat,
+  p <= m -> n = m - p -> m = n + p.
+Proof.
+  intros n m p p_le_m H.
+  rewrite H, plus_comm.
+  symmetry.
+  apply le_plus_minus_r, p_le_m.
+Qed.
+
+Lemma n_le_0:
+  forall n:nat, n <= 0 -> n = 0.
+Proof.
+  intros n n_le_0.
+  destruct n.
+  reflexivity.
+  absurd (S n <= 0).  
+  apply le_Sn_0.
+  assumption.
 Qed.
 
 Lemma div_works:
@@ -147,6 +174,197 @@ Proof.
   apply not_lt_le; auto.
   apply lt_0_Sn.
   apply lt_n_Sm_le; auto.
+Qed.
+
+Lemma rem_works:
+  forall n d:nat,
+  d <> 0 ->
+  exists q:nat, div n d = Some q /\
+  exists r:nat, rem n d = Some r /\
+  n = d * q + r.
+Proof.
+  intros n d d_ne_0.
+  cut (exists q:nat, div n d = Some q /\
+       d * q <= n < d * S q).
+  intros [q [div_result [div_lo_bound 
+                         div_hi_bound]]]. 
+  cut (exists r:nat, rem n d = Some r).
+  intros [r rem_result].
+  exists q.
+  split.
+  apply div_result.
+  exists r.
+  split.
+  apply rem_result.
+  unfold rem in rem_result.
+  rewrite div_result in rem_result.
+  injection rem_result.
+  intros div_rem_rel.
+  rewrite plus_comm.
+  apply minus_to_plus.
+  apply div_lo_bound.
+  rewrite <-div_rem_rel, mult_comm.
+  reflexivity.
+  unfold rem.
+  rewrite div_result.
+  exists (n - q * d).
+  reflexivity.
+  apply div_works, d_ne_0.
+Qed.
+
+(*
+
+Extended GCD adapted from
+
+egcd :: Natural -> Natural -> (Natural,(Natural,Natural))
+egcd a 0 = (a,(1,0))
+egcd a b =
+    if c == 0
+    then (b, (1, a `div` b - 1))
+    else (g, (u, t + (a `div` b) * u))
+  where
+    c = a `mod` b
+    (g,(s,t)) = egcd c (b `mod` c)
+    u = s + (b `div` c) * t
+
+obtained from
+
+https://gilith.wordpress.com/2015/06/24/
+natural-number-greatest-common-divisor/
+
+*)
+
+Fixpoint egcd_aux (a b x:nat) :=
+  match a, b, x with
+  | S _, 0, _ => Some (a, 1, 0)
+  | S _, S _, S y =>
+    match rem a b, div a b with
+    | Some c, Some a_div_b =>
+      match c with
+      | 0 => Some (b, 1, a_div_b - 1)
+      | _ =>
+        match rem b c with
+        | Some rem_b_c =>
+          match egcd_aux c rem_b_c y with
+          | Some (g, s, t) =>
+            match div b c with
+            | Some b_div_c =>
+              let u := s + b_div_c * t in
+              Some (g, u, t + a_div_b * u)
+            | _ => None
+            end
+          | None => None
+          end
+        | None => None
+        end
+      end
+      | _, _ => None
+    end
+  | _, _, _ => None
+  end.
+
+Definition egcd (n m:nat) :=
+  egcd_aux n m (S(m + n)).
+
+Lemma egcd_works:
+  forall n m:nat,
+  m <= n -> m <> 0 ->
+  exists g, exists s, exists t,
+  Some (g, s, t) = egcd n m /\
+  rem n g = Some 0 /\
+  rem m g = Some 0 /\
+  s * n = t * m + g.
+Proof.
+  (* let's start by generalizing the auxiliary
+     parameter *)
+  cut (forall n m x:nat,
+       m <= n -> m <> 0 -> n + m < x ->
+       exists g, exists s, exists t,
+       Some (g, s, t) = egcd_aux n m x /\
+       rem n g = Some 0 /\
+       rem m g = Some 0 /\
+       s * n = t * m + g).
+  intros Hgen n m m_le_n m_ne_0.
+  unfold egcd.
+  apply Hgen; auto.
+  rewrite plus_comm.
+  apply lt_n_Sn.
+
+  (* starts the strong induction *)
+  intros n.
+  elim n using nat_strong_ind.
+  
+  (* eliminates the n = 0 case *)
+  intros m x m_le_0 m_ne_0 _.
+  absurd (m = 0).
+  assumption.
+  apply n_le_0; assumption.
+
+  (* starts introducing the strong induction
+     hypothesis *)
+  clear n.
+  intros n Hrec.
+  intros m x m_le_n m_ne_0 n_p_m_lt_x.
+
+  (* let's start showing a solution exists *)
+  assert (exists g, exists s, exists t,
+          Some (g, s, t) = 
+          egcd_aux n m x) as Hex.
+  
+  (* unfolding the definitions in the
+     existential hypothesis gives us a cluttered
+     result *)
+  (* let's isolate the right branch *)
+  destruct n as [|n'].
+  absurd (m = 0).
+  assumption.
+  apply n_le_0; assumption.
+  simpl.
+  destruct m as [|m'].
+  absurd (0 = 0).
+  assumption.
+  reflexivity.
+  simpl.
+  destruct x as [|x'].
+  absurd (S n' + S m' < 0).
+  apply lt_n_O.
+  assumption.
+  simpl.
+  cut (exists c, rem (S n') (S m') = Some c).
+  intros [c EHc].
+  rewrite EHc.
+  cut (exists a_div_b,
+       div (S n') (S m') = Some a_div_b).
+  intros [a_div_b EHa_div_b].
+  rewrite EHa_div_b.
+  
+  (* now we have two different cases, depending
+     if c is 0 *)
+
+  (* the c = 0 case is trivial *)
+  destruct c as [|c'].
+  exists (S m'), 1, (a_div_b - 1).
+  reflexivity.
+
+  (* we start the other case by proving the
+     existence of some terms *)
+  cut (exists rem_b_c,
+       rem (S m') (S c') = Some rem_b_c).
+  intros [rem_b_c EHrem_b_c].
+  rewrite EHrem_b_c.
+  cut (exists b_div_c,
+       div (S m') (S c') = Some b_div_c).
+  intros [b_div_c EHb_div_c].
+  rewrite EHb_div_c.
+
+  (* FIXME: INCLUDE THE PROOF IN THE UNFOLDING,
+     AVOID USING AN ASSERT *)
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
+  admit.
 Qed.
 
 Fixpoint sum_series
