@@ -176,6 +176,51 @@ Proof.
   apply lt_n_Sm_le; auto.
 Qed.
 
+Lemma d_q_step:
+  forall q q' d:nat,
+  q < q' -> d * S q <= d * q'.
+Proof.
+  intros q q' d q_lt_q'.
+  apply mult_le_compat_l, q_lt_q'.
+Qed.
+
+Lemma div_unique:
+  forall n d q:nat,
+  d * q <= n < d * S q -> div n d = Some q.
+Proof.
+  intros n d q [Hlo Hhi].
+  destruct d as [|d'].
+  simpl in Hhi.
+  absurd (n < 0).
+  apply lt_n_O.
+  assumption.
+  cut (exists q:nat,
+       div n (S d') = Some q /\
+       S d' * q <= n < S d' * S q).
+  intros [q' [EHq' [Hq'lo Hq'hi]]].
+  cut (q' < q \/ q = q' \/ q' > q).
+  intros [Hqrel | [Hqrel | Hqrel]].
+  absurd (S d' * S q' <= S d' * q).
+  apply lt_not_le, le_lt_trans with (m := n);
+    assumption.
+  apply d_q_step; assumption.
+  rewrite EHq', Hqrel; reflexivity.
+  absurd (S d' * S q <= S d' * q').
+  apply lt_not_le, le_lt_trans with (m := n);
+    assumption.
+  apply d_q_step; assumption.
+  cut (q <= q' \/ q' < q).
+  intros [Hqle | Hq'lt].
+  right.
+  unfold gt.
+  rewrite or_comm.
+  apply le_lt_or_eq; assumption.
+  left; assumption.
+  apply le_or_lt.
+  apply div_works.
+  discriminate.
+Qed.
+
 Lemma rem_works:
   forall n d:nat,
   d <> 0 ->
@@ -210,6 +255,39 @@ Proof.
   exists (n - q * d).
   reflexivity.
   apply div_works, d_ne_0.
+Qed.
+
+Lemma rem_unique:
+  forall n d q r:nat,
+  (d * q <= n < d * S q /\ r = n - d * q) ->
+  rem n d = Some r.
+Proof.
+  intros n d q r [Hbounds Hrel].
+  unfold rem.
+  rewrite div_unique with (q := q).
+  rewrite Hrel, mult_comm; reflexivity.
+  assumption.  
+Qed.
+
+Lemma div_ge:
+  forall n m:nat,
+  m <> 0 -> m <= n ->
+  exists q, div n m = Some q /\ 1 <= q.
+Proof.
+  intros n m m_ne_0 m_le_n.
+  cut (exists q:nat,
+       div n m = Some q /\
+       m * q <= n < m * S q).
+  intros [q [EHq [Hblo Hbhi]]].
+  exists q.
+  split; [assumption | ..].  
+  destruct q as [|q'].
+  rewrite mult_1_r in Hbhi.
+  absurd (n < m).
+  apply le_not_lt; assumption.
+  assumption.
+  apply le_n_S, le_0_n.
+  apply div_works; assumption.
 Qed.
 
 (*
@@ -306,14 +384,8 @@ Proof.
   intros n Hrec.
   intros m x m_le_n m_ne_0 n_p_m_lt_x.
 
-  (* let's start showing a solution exists *)
-  assert (exists g, exists s, exists t,
-          Some (g, s, t) = 
-          egcd_aux n m x) as Hex.
-  
-  (* unfolding the definitions in the
-     existential hypothesis gives us a cluttered
-     result *)
+  (* unfolding the definitions gives us a
+     cluttered result *)
   (* let's isolate the right branch *)
   destruct n as [|n'].
   absurd (m = 0).
@@ -341,12 +413,65 @@ Proof.
   (* now we have two different cases, depending
      if c is 0 *)
 
-  (* the c = 0 case is trivial *)
+  (* the c = 0 case is quite simple *)
   destruct c as [|c'].
   exists (S m'), 1, (a_div_b - 1).
+  rewrite rem_unique
+    with (q := a_div_b) (r := 0).
+  rewrite rem_unique
+    with (q := 1) (r := 0).
+  split.
   reflexivity.
+  split.
+  reflexivity.
+  split.
+  reflexivity.
+  rewrite mult_minus_distr_r.
+  repeat rewrite mult_1_l.
+  rewrite plus_comm, le_plus_minus_r.
+  cut (exists q:nat,
+       div (S n') (S m') = Some q /\
+       exists r:nat,
+       rem (S n') (S m') = Some r /\
+       (S n') = (S m') * q + r).
+  intros [q [EHq [r [EHr Hqr]]]].
+  rewrite EHc in EHr.
+  injection EHr.
+  intros r_eq_0.
+  rewrite <-r_eq_0 in Hqr.
+  rewrite EHq in EHa_div_b.
+  injection EHa_div_b.
+  intros q_eq_a_div_b.
+  rewrite plus_0_r, q_eq_a_div_b,
+          mult_comm in Hqr.
+  assumption.
+  apply rem_works.
+  assumption.
+  rewrite <-mult_1_l at 1.
+  apply mult_le_compat_r.
+  cut (exists q,
+       div (S n') (S m') = Some q /\
+       1 <= q).
+  intros [q [q_is_quot quot_ge_1]].
+  rewrite EHa_div_b in q_is_quot. 
+  injection q_is_quot.
+  intros q_is_a_div_b.
+  rewrite q_is_a_div_b; assumption.
+  apply div_ge.
+  assumption.
+  assumption.
+  split.
+  split.
+  rewrite mult_1_r; apply le_n.
+  rewrite mult_comm.
+  unfold mult.
+  rewrite plus_0_r, <-plus_0_l at 1.
+  apply plus_lt_compat_r, lt_0_Sn.
+  rewrite mult_1_r, <-minus_n_n; reflexivity.
+  (* FIXME: ADMIT *)
+  admit.
 
-  (* we start the other case by proving the
+  (* we start the other case by asssuming the
      existence of some terms *)
   cut (exists rem_b_c,
        rem (S m') (S c') = Some rem_b_c).
@@ -357,9 +482,7 @@ Proof.
   intros [b_div_c EHb_div_c].
   rewrite EHb_div_c.
 
-  (* FIXME: INCLUDE THE PROOF IN THE UNFOLDING,
-     AVOID USING AN ASSERT *)
-  admit.
+  (* FIXME: INCLUDE THE PROOF IN THE UNFOLDING *)
   admit.
   admit.
   admit.
