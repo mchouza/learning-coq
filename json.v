@@ -40,19 +40,47 @@ Definition COMMA : unicode_codepoint.
   exists 44; omega. (* 0x2c *)
 Defined.
 
+(* Definition of JSON whitespace characters *)
+Definition SPACE : unicode_codepoint.
+  exists 32; omega. (* 0x20 *)
+Defined.
+Definition HORIZONTAL_TAB : unicode_codepoint.
+  exists 9; omega. (* 0x09 *)
+Defined.
+Definition LINE_FEED : unicode_codepoint.
+  exists 10; omega. (* 0x0a *)
+Defined.
+Definition CARRIAGE_RETURN : unicode_codepoint.
+  exists 13; omega. (* 0x0d *)
+Defined.
+
 (* JSON value definition *)
 Inductive json_value : Set :=
   | JSONValueFromArray : json_array -> json_value
 with json_array : Set :=
   | JSONEmptyArray : json_array
-  | JSONAppendToArray : json_array -> json_value -> json_array.
+  | JSONAppendToArray : json_value -> json_array -> json_array.
 
-(* JSON value serialization function *)
-Fixpoint serialize_json_value (jv:json_value) : unicode_string := 
+(* JSON canonical serialization function *)
+Fixpoint serialize_json_value (jv:json_value) : unicode_string :=
   match jv with
   | JSONValueFromArray ja => serialize_json_array ja
   end
 with serialize_json_array (ja:json_array) : unicode_string :=
-  LEFT_SQUARE_BRACKET :: RIGHT_SQUARE_BRACKET :: nil.
+  match ja with
+  | JSONEmptyArray => LEFT_SQUARE_BRACKET :: RIGHT_SQUARE_BRACKET :: nil
+  | JSONAppendToArray jhv jat =>
+      (LEFT_SQUARE_BRACKET :: nil) ++
+      (serialize_json_value jhv) ++
+      (_aux_serialize_json_array jat)
+  end
+with _aux_serialize_json_array (ja:json_array) : unicode_string :=
+  match ja with
+  | JSONEmptyArray => RIGHT_SQUARE_BRACKET :: nil
+  | JSONAppendToArray jhv jat =>
+      (COMMA :: nil) ++
+      (serialize_json_value jhv) ++
+      (_aux_serialize_json_array jat)
+  end.
 
-Compute unicode_to_ascii (serialize_json_value (JSONValueFromArray JSONEmptyArray)).
+Compute unicode_to_ascii (serialize_json_value (JSONValueFromArray (JSONAppendToArray (JSONValueFromArray JSONEmptyArray) (JSONAppendToArray (JSONValueFromArray JSONEmptyArray) JSONEmptyArray)))).
